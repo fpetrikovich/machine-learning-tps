@@ -13,7 +13,7 @@ def read_data(file):
     return df
 
 def process_replace(df):
-    return df.replace(to_replace=999.99, value=None)
+    return df.replace(to_replace=999.99, value=np.nan)
 
 # Filter all the N/A rows
 # Replace all 999.99 values in the column with the calculation for that column
@@ -44,7 +44,8 @@ def process_data(df, mode):
         process_median(df)
     return df
 
-def create_boxplots(df, field):
+def create_sex_boxplots(input_df, field):
+    df = input_df[input_df[field].notnull()]
     men = df[df[Headers.SEXO.value] == 'M'][field]
     women = df[df[Headers.SEXO.value] == 'F'][field]
     data = [df[field], men, women]
@@ -52,6 +53,27 @@ def create_boxplots(df, field):
     plt.boxplot(data, positions = position_values)
     plt.xticks(position_values[::], ["Global", "Hombres", "Mujeres"])
     plt.title("Consumo de " +field +" por sexo")
+    plt.show()
+
+def create_alcohol_graphs(input_df):
+    alcohol = Headers.ALCOHOL.value
+    calories = Headers.CALORIAS.value
+    df = input_df[(input_df[calories].notnull()) & (input_df[alcohol].notnull())]
+    cate1 = df[df[calories] <= 1100]
+    cate2 = df[(df[calories] > 1100) & (df[calories] <= 1700)]
+    cate3 = df[df[calories] > 1700]
+    data = [cate1[alcohol], cate2[alcohol], cate3[alcohol]]
+    position_values = [0, 1, 2]
+    plt.boxplot(data, positions = position_values)
+    plt.xticks(position_values[::], ["CATE1", "CATE2", "CATE3"])
+    plt.title("Consumo de alcohol por categoría calórica")
+    plt.show()
+    # Create scattterplot
+    plt.scatter(cate1[calories], cate1[alcohol])
+    plt.scatter(cate2[calories], cate2[alcohol])
+    plt.scatter(cate3[calories], cate3[alcohol])
+    plt.xlabel("Consumo calórico")
+    plt.ylabel("Consumo de alcohol")
     plt.show()
 
 def main():
@@ -67,11 +89,15 @@ def main():
     new_df = process_data(df, args.mode)
     print_entire_df(new_df)
 
-    # Create graphs
+    # Create BoxPlot and Scatterplot graphs
     for header in Headers:
         if header != Headers.SEXO:
             h = header.value
-            create_boxplots(new_df, header.value)
+            create_sex_boxplots(new_df, header.value)
+    create_alcohol_graphs(new_df)
+
+    # Create Histogram graphs
+    # TO DO
 
 if __name__ == '__main__':
     main()
