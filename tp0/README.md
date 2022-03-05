@@ -37,5 +37,5 @@ Ejemplos de los llamados:
 ```
 python main.py -f input/data.xls -m MEAN
 python main.py -f input/data.xls -m MEDIAN
-python main.py -f input/data.xls -m REPLACE
+python main.py -f input/data.xls -m REMOVE
 ```
