@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from constants import Headers, Modes
+import matplotlib.gridspec as gridspec
 
 def print_entire_df (df):
     pd.set_option('display.max_rows', df.shape[0]+1)
@@ -39,9 +40,9 @@ def process_data(df, mode):
     if mode == Modes.REMOVE.name:
         df = process_replace(df)
     elif mode == Modes.MEDIAN.name:
-        process_mean(df)
+        df = process_mean(df)
     elif mode == Modes.MEAN.name:
-        process_median(df)
+        df = process_median(df)
     return df
 
 def create_sex_boxplots(input_df, field):
@@ -76,6 +77,41 @@ def create_alcohol_graphs(input_df):
     plt.ylabel("Consumo de alcohol")
     plt.show()
 
+def create_sex_histograms(input_df):
+
+    n_bins = 10
+    colors = ['gray', 'blue', 'pink']
+    labels = ['All', 'Men', 'Women']
+
+    # Graph one figure with the 3 histograms
+    fig, ((ax0), (ax1), (ax2)) = plt.subplots(nrows=3, ncols=1)
+
+    graphs = {
+        Headers.GRASAS.value: ax0, 
+        Headers.ALCOHOL.value: ax1, 
+        Headers.CALORIAS.value: ax2
+    }
+
+    for header in Headers:
+        if header != Headers.SEXO:
+            h = header.value
+            graph = graphs[h] 
+
+            # Filter data of header by sex
+            df = input_df[input_df[h].notnull()]
+            men = df[df[Headers.SEXO.value] == 'M'][h]
+            women = df[df[Headers.SEXO.value] == 'F'][h]
+            data = [df[h], men, women]
+
+            # plot all, men, and women data in the histogram
+            graph.hist(data, n_bins, histtype='bar', color=colors, label=labels)
+            graph.legend(prop={'size': 8})
+            graph.set_title(h)            
+
+    fig.tight_layout()
+    plt.savefig('graphs/Figure_6_Histogram.png')
+
+
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser(description="Machine Learning TP0")
@@ -94,7 +130,9 @@ def main():
         if header != Headers.SEXO:
             h = header.value
             create_sex_boxplots(new_df, header.value)
+    
     create_alcohol_graphs(new_df)
+    create_sex_histograms(new_df)
 
     # Create Histogram graphs
     # TO DO
