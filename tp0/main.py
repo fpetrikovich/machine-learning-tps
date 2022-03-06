@@ -129,7 +129,6 @@ def covariance(input_df):
     return correlation_matrix
 
 
-
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser(description="Machine Learning TP0")
@@ -147,15 +146,12 @@ def main():
     for header in Headers:
         if header != Headers.SEXO:
             h = header.value
-            # create_sex_boxplots(new_df, header.value)
+            create_sex_boxplots(new_df, header.value)
     
-    # create_alcohol_graphs(new_df)
-    # create_sex_histograms(new_df)
+    create_alcohol_graphs(new_df)
+    create_sex_histograms(new_df)
 
     covariance(new_df)
-
-    # Create Histogram graphs
-    # TO DO
 
 if __name__ == '__main__':
     main()
