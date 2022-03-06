@@ -111,6 +111,24 @@ def create_sex_histograms(input_df):
     fig.tight_layout()
     plt.savefig('graphs/Figure_6_Histogram.png')
 
+def covariance(input_df):
+    calories_cond = input_df[Headers.CALORIAS.value].notnull() 
+    alcohol_cond = input_df[Headers.ALCOHOL.value].notnull()
+    sat_fat_cond = input_df[Headers.GRASAS.value].notnull()
+    
+    df = input_df[calories_cond & alcohol_cond & sat_fat_cond]
+
+    fat = df[Headers.GRASAS.value].to_numpy()
+    alcohol = df[Headers.ALCOHOL.value].to_numpy()
+    calories = df[Headers.CALORIAS.value].to_numpy()
+
+    data = np.stack([fat, alcohol, calories])
+
+    correlation_matrix = np.corrcoef(data)
+    print (correlation_matrix)
+    return correlation_matrix
+
+
 
 def main():
     # Parse arguments
@@ -129,10 +147,12 @@ def main():
     for header in Headers:
         if header != Headers.SEXO:
             h = header.value
-            create_sex_boxplots(new_df, header.value)
+            # create_sex_boxplots(new_df, header.value)
     
-    create_alcohol_graphs(new_df)
-    create_sex_histograms(new_df)
+    # create_alcohol_graphs(new_df)
+    # create_sex_histograms(new_df)
+
+    covariance(new_df)
 
     # Create Histogram graphs
     # TO DO
