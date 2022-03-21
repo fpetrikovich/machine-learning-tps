@@ -55,8 +55,29 @@ Ex2_Blacklist = {
     'desde': True,
     'donde': True,
     'hasta': True,
+    'hizo': True,
     'este': True,
     'esta': True,
     'está': True,
     'tiene': True,
+    'podría': True,
+    'podrá': True,
+    'dijo': True,
+    # Eliminar números
+    'tres': True,
+    'cuatro': True,
+    'cinco': True,
+    'seis': True,
+    'siete': True,
+    'ocho': True,
+    'nueve': True,
+    'diez': True,
+    # Nafta también está
+    'naftas': True,
+    # River y Boca tienen mejor frecuencia, al pedo tener esto
+    'River-Boca:': True,
+    'River-Boca': True,
+    # Piel ya está, y después se va a ver con un includes
+    'piel::': True,
+    'dijo': True
 }

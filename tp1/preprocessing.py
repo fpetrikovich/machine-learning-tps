@@ -53,5 +53,5 @@ def preprocess_news(df):
         # Sort the map
         mapping[category] = dict(sorted(mapping[category].items(), key=lambda item: item[1], reverse=True))
     # Show a top 20 by category
-    show_top_n_by_category(mapping, 20)
+    show_top_n_by_category(mapping, 30)
     
