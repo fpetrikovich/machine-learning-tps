@@ -11,3 +11,52 @@ class Ex1_Headers(Enum):
 class Ex1_Nacionalidad(Enum):
     ENGLISH = 'E'
     IRISH = 'I'
+
+class Ex2_Headers(Enum):
+    FECHA = 'fecha'
+    TITULAR = 'titular'
+    FUENTE = 'fuente'
+    CATEGORIA = 'categoria'
+
+class Ex2_Categoria(Enum):
+    INTERNACIONAL = "Internacional"
+    NACIONAL = "Nacional"
+    DESTACADAS = "Destacadas"
+    DEPORTES = "Deportes"
+    SALUD = "Salud"
+    CIENCIA_TECNOLOGIA = "Ciencia y Tecnologia"
+    ENTRETENIMIENTO = "Entretenimiento"
+    ECONOMIA = "Economia"
+    NOTICIAS_DESTACADAS = "Noticias destacadas"
+
+class Ex2_Mode(Enum):
+    SOLVE = "solve"
+    ANALYZE = "analyze"
+
+Ex2_Blacklist = {
+    'para': True,
+    'como': True,
+    'Como': True,
+    'cómo': True,
+    'Cómo': True,
+    'luego': True,
+    'sobre': True,
+    'tras': True,
+    'luego': True,
+    'pero': True,
+    'ante': True,
+    'entre': True,
+    'durante': True,
+    'saber': True,
+    '2018:': True,
+    '2018': True,
+    '2019:': True,
+    '2019': True,
+    'desde': True,
+    'donde': True,
+    'hasta': True,
+    'este': True,
+    'esta': True,
+    'está': True,
+    'tiene': True,
+}

@@ -9,8 +9,9 @@ def main():
     parser = argparse.ArgumentParser(description="Machine Learning TP0")
 
     # Add arguments
-    parser.add_argument('-f', dest='file', required=True)
+    parser.add_argument('-f', dest='file', required=True)   # Archivo para usar
     parser.add_argument('-p', dest='point', required=True)  # Ejercicio a ejecutar
+    parser.add_argument('-m', dest='mode')  # Modo
     args = parser.parse_args()
 
     try:
@@ -25,7 +26,7 @@ def main():
     if item == 1:
         run_exercise_1(args.file)
     elif item == 2:
-        run_exercise_2(args.file)
+        run_exercise_2(args.file, args.mode)
     elif item == 3:
         run_exercise_3(args.file)
 
