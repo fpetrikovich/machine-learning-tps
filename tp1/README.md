@@ -37,6 +37,6 @@ python main.py -p [1|2|3] -f PATH_AL_ARCHIVO_INPUT -m [REMOVE|MEDIAN|MEAN]
 
 Ejemplos de los llamados:
 ```
-python main.py -p 1 -f input/PreferenciasBritanicos.xls
-python main.py -p 2 -f input/Noticias_argentinas.xls
+python main.py -p 1 -f input/PreferenciasBritanicos.xlsx
+python main.py -p 2 -f input/Noticias_argentinas.xlsx
 ```

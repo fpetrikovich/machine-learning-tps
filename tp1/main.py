@@ -10,7 +10,6 @@ def main():
 
     # Add arguments
     parser.add_argument('-f', dest='file', required=True)
-    parser.add_argument('-m', dest='mode', required=True)
     parser.add_argument('-p', dest='point', required=True)  # Ejercicio a ejecutar
     args = parser.parse_args()
 
@@ -19,16 +18,16 @@ def main():
         if item <= 0 or item > 3:
             print("[ERROR] Invalid value for input, must be between 1 and 3")
             exit(0)
-
-        print("[INFO] Running exercise", item, "...")
-        if item == 1:
-            run_exercise_1(args.file)
-        elif item == 2:
-            run_exercise_2(args.file)
-        elif item == 3:
-            run_exercise_3(args.file)
     except:
         print("[ERROR] Invalid option input")
+
+    print("[INFO] Running exercise", item, "...")
+    if item == 1:
+        run_exercise_1(args.file)
+    elif item == 2:
+        run_exercise_2(args.file)
+    elif item == 3:
+        run_exercise_3(args.file)
 
 if __name__ == '__main__':
     main()
