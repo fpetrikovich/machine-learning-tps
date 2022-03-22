@@ -7,6 +7,7 @@ import pandas as pd
 def build_examples(columns):
     sample_1 = pd.DataFrame(data=[[1,0,1,1,0,'?']], columns=columns)
     sample_2 = pd.DataFrame(data=[[0,1,1,0,1,'?']], columns=columns)
+    print(sample_1)
     return sample_1, sample_2
 
 def compute_laplace_frequencies(df):
@@ -48,6 +49,6 @@ def run_exercise_1(file):
     sample_1, sample_2 = build_examples(df.columns)
     # Apply Bayes to both
     print("------------------------")
-    apply_bayes(sample_1, frequencies, class_probability, Ex1_Headers, Ex1_Headers.NACIONALIDAD, Ex1_Nacionalidad)
+    apply_bayes(sample_1, frequencies, class_probability, [e.value for e in Ex1_Headers], Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])
     print("------------------------")
-    apply_bayes(sample_2, frequencies, class_probability, Ex1_Headers, Ex1_Headers.NACIONALIDAD, Ex1_Nacionalidad)
+    apply_bayes(sample_2, frequencies, class_probability, [e.value for e in Ex1_Headers], Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])
