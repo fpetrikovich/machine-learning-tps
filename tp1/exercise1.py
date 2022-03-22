@@ -15,15 +15,15 @@ def get_df_for_class(df, _class):
 def compute_laplace_frequencies(df):
     # Create empty df
     _df = pd.DataFrame()
-    for nacionality in Ex1_Nacionalidad:
+    for nationality in Ex1_Nacionalidad:
         # Get df filter for given nationality
-        filteredDf = df[df[Ex1_Headers.NACIONALIDAD.value] == nacionality.value]
+        filteredDf = df[df[Ex1_Headers.NACIONALIDAD.value] == nationality.value]
         # Compute sum across columns
         laplaceDf = pd.DataFrame(data=filteredDf.sum(axis = 0, numeric_only = True)).transpose()
         # Apply Laplace to the frequencies given the current class
         laplaceDf = (laplaceDf + 1) / (filteredDf.shape[0] + len(Ex1_Nacionalidad))
         # Append the nationality
-        laplaceDf[Ex1_Headers.NACIONALIDAD.value] = nacionality.value
+        laplaceDf[Ex1_Headers.NACIONALIDAD.value] = nationality.value
         # Concat the new class probabilities
         _df = pd.concat([_df, laplaceDf], ignore_index = True)
     return _df
@@ -31,13 +31,13 @@ def compute_laplace_frequencies(df):
 def compute_class_probability(df):
     # Create empty df
     _df = pd.DataFrame()
-    for nacionality in Ex1_Nacionalidad:
+    for nationality in Ex1_Nacionalidad:
         # Get df filter for given nationality
-        filteredDf = df[df[Ex1_Headers.NACIONALIDAD.value] == nacionality.value]
+        filteredDf = df[df[Ex1_Headers.NACIONALIDAD.value] == nationality.value]
         # Set data as the realtive frequency of each class
         nationalityProbability = pd.DataFrame(data=[[filteredDf.shape[0]/df.shape[0]]])
         # Append the nationality
-        nationalityProbability[Ex1_Headers.NACIONALIDAD.value] = nacionality.value
+        nationalityProbability[Ex1_Headers.NACIONALIDAD.value] = nationality.value
         # Concat the new class probabilities
         _df = pd.concat([_df, nationalityProbability], ignore_index = True)
     return _df
@@ -79,15 +79,15 @@ def apply_bayes(example, frequencies, class_probability):
         if results[nationality] > max:
             max = results[nationality]
             max_nationality = nationality
-    print("It's most probable to be", max_nationality.value)
+    print("It's most likely to be", max_nationality.value)
 
 def run_exercise_1(file):
     # Get the data
     df = read_data(file)
-    # Build samples to test
-    sample_1, sample_2 = build_examples(df.columns)
     # Compute probabilities
     frequencies, class_probability = compute_laplace_frequencies(df), compute_class_probability(df)
+    # Build samples to test
+    sample_1, sample_2 = build_examples(df.columns)
     # Apply Bayes to both
     print("------------------------")
     apply_bayes(sample_1, frequencies, class_probability)

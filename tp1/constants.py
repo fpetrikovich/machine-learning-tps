@@ -9,8 +9,8 @@ class Ex1_Headers(Enum):
     NACIONALIDAD = 'Nacionalidad'
 
 class Ex1_Nacionalidad(Enum):
-    ENGLISH = 'E'
-    IRISH = 'I'
+    ENGLISH = 'I'
+    SCOTTISH = 'E'
 
 class Ex2_Headers(Enum):
     FECHA = 'fecha'
