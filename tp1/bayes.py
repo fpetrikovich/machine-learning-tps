@@ -1,4 +1,7 @@
 # Get row for specific class
+from fileHandling import print_entire_df
+from configurations import Configuration
+
 def get_df_for_class(df, header_name, _class):
     return df[df[header_name] == _class]
 
@@ -19,7 +22,7 @@ def compute_hmap_for_class(sample, frequencies, class_probability, header_names,
                 probability *= (1 - current_class_frequencies.iloc[0][header])
     return probability
 
-def apply_bayes(example, frequencies, class_probability, header_names, class_header, class_names):
+def apply_bayes(example, frequencies, class_probability, header_names, class_header, class_names, print_example = True):
     results, total, max, max_classification = {}, 0, 0, None
     # Calculate the hmap without denominator
     for classification in class_names:
@@ -28,16 +31,19 @@ def apply_bayes(example, frequencies, class_probability, header_names, class_hea
         # Add it towards the total so that we get the correct probability
         total += results[classification]
     # Pretty prints
-    print("Current example to classify...")
-    print(example)
-    print('')
+    if print_example:
+        print("Current example to classify...")
+        print_entire_df(example)
+        print('')
     # Iterate again to properly compute the probability
     for classification in class_names:
         # Divide by the total
         results[classification] = results[classification] / total
-        print("Probability of the example to be", classification, "is", results[classification])
+        if Configuration.isVerbose():
+            print("Probability of the example to be", classification, "is", results[classification])
         # Check which one is the maximum one
         if results[classification] > max:
             max = results[classification]
             max_classification = classification
-    print("It's most likely to be", max_classification)
+    if Configuration.isVerbose():
+        print("It's most likely to be", max_classification)

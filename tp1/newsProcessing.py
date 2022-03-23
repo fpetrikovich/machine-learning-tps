@@ -1,4 +1,4 @@
-from constants import Ex2_Blacklist, Ex2_Headers
+from constants import Ex2_Blacklist, Ex2_Headers, Ex2_Must_Have
 from functools import reduce
 import pandas as pd
 
@@ -45,11 +45,15 @@ def build_binary_survey(df, key_words):
     for index in df.index:
         headline = df[Ex2_Headers.TITULAR.value][index]
         category = df[Ex2_Headers.CATEGORIA.value][index]
+        # Tokenize headline for faster lookup
+        tokenized_headline = tokenize_title(headline)
         matches = {}
+        # Iterate keywords and find which words are present
         for word in key_words:
             matches[word] = 0
-            if word in headline.split(" "):
+            if word in tokenized_headline:
                 matches[word] = 1
+        # Keep the original category to test the prediction
         matches[Ex2_Headers.CATEGORIA.value] = category
         df2 = pd.concat([df2, pd.DataFrame([matches])], ignore_index=True)
     return df2
@@ -66,8 +70,10 @@ def compute_laplace_frequencies(df, key_words, possible_categories):
         for index in filteredDf.index:
             headline = filteredDf[Ex2_Headers.TITULAR.value][index]
             category = filteredDf[Ex2_Headers.CATEGORIA.value][index]
+            # Tokenize headline for faster lookup
+            tokenized_headline = tokenize_title(headline)
             for word in key_words:
-                if word in headline.split(" "):
+                if word in tokenized_headline:
                     matches[word] += 1
         # Apply Laplace and add to df
         for word in key_words:
@@ -99,16 +105,27 @@ def get_mapping(df, possible_categories):
         mapping[category] = dict(sorted(mapping[category].items(), key=lambda item: item[1], reverse=True))
     return mapping
 
-def get_key_words(df, allowed_categories, n):
+def get_key_words(df, allowed_categories, n, is_analysis = False):
     # Count total appearances of words by category
     mapping = get_mapping(df, allowed_categories)
+    # Show pretty analysis view 
+    if is_analysis:
+        show_top_n_by_category(mapping, n)
     # Get the top N of each category and group them in a set
     key_words = set({})
+    word_history = {}
     for category in mapping:
         current_map = mapping[category]
         i = 0
         for key in current_map:
             if i > n: break
-            key_words.add(key)
-            i += 1
+            if not key in word_history:
+                key_words.add(key)
+                word_history[key] = True
+                i += 1
+    # Add must have words to the filters
+    for word in Ex2_Must_Have:
+        if not word in word_history:
+            key_words.add(word)
+            word_history[word] = True
     return key_words

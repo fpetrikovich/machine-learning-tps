@@ -7,7 +7,6 @@ import pandas as pd
 def build_examples(columns):
     sample_1 = pd.DataFrame(data=[[1,0,1,1,0,'?']], columns=columns)
     sample_2 = pd.DataFrame(data=[[0,1,1,0,1,'?']], columns=columns)
-    print(sample_1)
     return sample_1, sample_2
 
 def compute_laplace_frequencies(df):

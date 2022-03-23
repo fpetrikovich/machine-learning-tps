@@ -1,8 +1,10 @@
 import argparse
+from xmlrpc.client import boolean
 
 from exercise1 import run_exercise_1
 from exercise2 import run_exercise_2
 from exercise3 import run_exercise_3
+from configurations import Configuration
 
 def main():
     # Parse arguments
@@ -12,6 +14,8 @@ def main():
     parser.add_argument('-f', dest='file', required=True)   # Archivo para usar
     parser.add_argument('-p', dest='point', required=True)  # Ejercicio a ejecutar
     parser.add_argument('-m', dest='mode')  # Modo
+    parser.add_argument('-v', dest='verbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
+    parser.add_argument('-vv', dest='veryVerbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
     args = parser.parse_args()
 
     try:
@@ -21,6 +25,11 @@ def main():
             exit(0)
     except:
         print("[ERROR] Invalid option input")
+        exit(0)
+
+    # Store configuration
+    Configuration.setVerbose(args.verbose)
+    Configuration.setVeryVerbose(args.veryVerbose)
 
     print("[INFO] Running exercise", item, "...")
     if item == 1:

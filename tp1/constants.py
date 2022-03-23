@@ -73,11 +73,23 @@ Ex2_Blacklist = {
     'nueve': True,
     'diez': True,
     # Nafta también está
-    'naftas': True,
+    # 'naftas': True,
     # River y Boca tienen mejor frecuencia, al pedo tener esto
-    'River-Boca:': True,
-    'River-Boca': True,
+    # 'River-Boca:': True,
+    # 'River-Boca': True,
     # Piel ya está, y después se va a ver con un includes
-    'piel::': True,
-    'dijo': True
+    # 'piel:': True,
+    'dijo': True,
+    'porque': True,
+    'recién': True,
+    'puede': True,
+    'todo': True,
+    'tenía': True,
+    'tiene': True,
+    'tipo': True,
+    'volvió': True,
+    'Tras': True,
+    '5,8%': True
 }
+
+Ex2_Must_Have = ['tuberculosis', 'investigación']
