@@ -28,15 +28,21 @@ pip freeze > requirements.txt
 
 Para ejecutar se usa la siguiente llamada:
 ```
-python main.py -p [1|2|3] -f PATH_AL_ARCHIVO_INPUT -m [REMOVE|MEDIAN|MEAN]
+python main.py -p [1|2|3] -f PATH_AL_ARCHIVO_INPUT -m [analyze|solve] [-v] [-vv]
 ```
 
 - `-p` indica que ejercicio correr, el `1`, `2` o `3`
+- `-m` sirve para el ejercicio 2
+- `-v` corre en modo verbose, imprime cada resultado
+- `-vv` corre en modo very verbose, imprime la matrix además de cada resultado
 
 ### Ejemplos de Llamados
 
 Ejemplos de los llamados:
 ```
 python main.py -p 1 -f input/PreferenciasBritanicos.xlsx
-python main.py -p 2 -f input/Noticias_argentinas.xlsx
+python main.py -p 2 -f input/Noticias_argentinas.xlsx -m analyze
+python main.py -p 2 -f input/Noticias_argentinas.xlsx -m solve
+python main.py -p 2 -f input/Noticias_argentinas.xlsx -m solve -v
+python main.py -p 2 -f input/Noticias_argentinas.xlsx -m solve -v -vv
 ```
