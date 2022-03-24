@@ -100,6 +100,11 @@ class Ex3_Headers(Enum):
     GPA = 'gpa'
     RANK = 'rank'
 
+class Ex3_Negated_Headers(Enum):
+    ADMIT = 'no_admit'
+    GRE = 'low_gre'
+    GPA = 'low_gpa'
+
 class Ex3_Ranks(Enum):
     FIRST = 1
     SECOND = 2
