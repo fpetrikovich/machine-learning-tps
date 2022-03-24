@@ -6,6 +6,60 @@ from newsProcessing import get_key_words, compute_laplace_frequencies, compute_c
 from constants import Ex2_Mode, Ex2_Headers, Ex2_Categoria
 from configurations import Configuration
 
+def get_data_from_matrix(confusion):
+    FP = confusion.sum(axis=0) - np.diag(confusion)
+    FN = confusion.sum(axis=1) - np.diag(confusion)
+    TP = np.diag(confusion)
+    TN = confusion.sum() - (FP + FN + TP)
+    return {'TP':TP, 'TN':TN, 'FP':FP, 'FN':FN}
+
+def get_total_accuracy(confusion):
+    TP = 0.0
+    events = 0.0
+    for i in range(len(confusion[0])):
+        for j in range(len(confusion[0])):
+            events += confusion[i,j]
+            if i==j:
+                TP += confusion[i,j]
+    return TP / events
+
+def get_accuracy(confusion):
+    data = get_data_from_matrix(confusion)
+    TP = data['TP']
+    FP = data['FP']
+    TN = data['TN']
+    FN = data['FN']
+    return (TP+TN)/(TP+TN+FP+FN)
+
+def get_precision(confusion):
+    data = get_data_from_matrix(confusion)
+    TP = data['TP']
+    FP = data['FP']
+    return TP / (TP+FP)
+
+def get_recall(confusion):
+    data = get_data_from_matrix(confusion)
+    TP = data['TP']
+    FN = data['FN']
+    return TP / (TP+FN)
+
+def get_F1_score(confusion):
+    precision = get_precision(confusion)
+    recall = get_recall(confusion)
+    return 2*precision*recall/(precision+recall)
+
+def get_TP_rate(confusion):
+    data = get_data_from_matrix(confusion)
+    TP = data['TP']
+    FN = data['FN']
+    return TP/(TP+FN)
+
+def get_FP_rate(confusion):
+    data = get_data_from_matrix(confusion)
+    FP = data['FP']
+    TN = data['TN']
+    return FP/(FP+TN)
+
 def run_exercise_2(file, mode):
     print('Importing news data...')
     df = read_data(file)
@@ -26,6 +80,9 @@ def run_exercise_2(file, mode):
         print('Processing testing set...')
         test_df = build_binary_survey(test, key_words)
         total_elements, current_step = test_df.shape[0], 0
+        confusion = np.zeros((len(allowed_categories), len(allowed_categories)))
+
+        # Apply Bayes to every article in testing set
         for index in range(total_elements):
             if index / 25 > current_step:
                 current_step += 1
@@ -36,4 +93,12 @@ def run_exercise_2(file, mode):
                 print(test.iloc[index][Ex2_Headers.TITULAR.value], '-->', test.iloc[index][Ex2_Headers.CATEGORIA.value])
                 print('')
             # Use as a sample the indexed location
-            apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
+            predicted, actual = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
+            confusion[allowed_categories.index(actual), allowed_categories.index(predicted)] += 1
+        print(confusion)
+        print("Accuracy: ", get_accuracy(confusion))
+        print("Precision: ", get_precision(confusion))
+        print("Recall: ", get_recall(confusion))
+        print("F1: ", get_F1_score(confusion))
+        print("TP Rate: ", get_TP_rate(confusion))
+        print("FP Rate: ", get_FP_rate(confusion))

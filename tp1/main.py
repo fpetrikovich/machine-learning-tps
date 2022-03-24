@@ -14,8 +14,14 @@ def main():
     parser.add_argument('-f', dest='file', required=True)   # Archivo para usar
     parser.add_argument('-p', dest='point', required=True)  # Ejercicio a ejecutar
     parser.add_argument('-m', dest='mode')  # Modo
-    parser.add_argument('-v', dest='verbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
-    parser.add_argument('-vv', dest='veryVerbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
+    
+    # The following two are if using Python 3.9 and up
+    #parser.add_argument('-v', dest='verbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
+    #parser.add_argument('-vv', dest='veryVerbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
+
+    # The following are for Python 3.8 and under
+    parser.add_argument('-v', dest='verbose', action='store_true')  # Verbose, print or not
+    parser.add_argument('-vv', dest='veryVerbose', action='store_true')  # Verbose, print or not
     args = parser.parse_args()
 
     try:
