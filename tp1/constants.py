@@ -93,3 +93,15 @@ Ex2_Blacklist = {
 }
 
 Ex2_Must_Have = ['tuberculosis', 'investigación']
+
+class Ex3_Headers(Enum):
+    ADMIT = 'admit'
+    GRE = 'gre'
+    GPA = 'gpa'
+    RANK = 'rank'
+
+class Ex3_Ranks(Enum):
+    FIRST = 1
+    SECOND = 2
+    THIRD = 3
+    FOURTH = 4
