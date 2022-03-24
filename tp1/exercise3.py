@@ -19,6 +19,7 @@ def compute_rank_probability(df):
 
 # Probability of a grade given a rank P(Grade|Rank)
 def compute_grade_frequencies(df):
+    posible_grade_classes = [0, 1]
     # Create empty df
     _df = pd.DataFrame()
     for rank in Ex3_Ranks:
@@ -27,10 +28,10 @@ def compute_grade_frequencies(df):
         # Compute sum across columns
         laplace_df = pd.DataFrame(data=filtered_df.sum(axis = 0, numeric_only = True)).transpose()
         # Apply Laplace to the frequencies given the current class
-        laplace_df = (laplace_df + 1) / (filtered_df.shape[0] + len(Ex3_Ranks))
+        laplace_df = (laplace_df + 1) / (filtered_df.shape[0] + len(posible_grade_classes))
         # Append the negated probabilities
-        laplace_df['no_'+Ex3_Headers.GRE.value] = laplace_df.apply(lambda laplace_df: compute_negation_probability(laplace_df, Ex3_Headers.GRE), axis=1)
-        laplace_df['no_'+Ex3_Headers.GPA.value] = laplace_df.apply(lambda laplace_df: compute_negation_probability(laplace_df, Ex3_Headers.GPA), axis=1)
+        laplace_df['low_'+Ex3_Headers.GRE.value] = laplace_df.apply(lambda laplace_df: compute_negation_probability(laplace_df, Ex3_Headers.GRE), axis=1)
+        laplace_df['low_'+Ex3_Headers.GPA.value] = laplace_df.apply(lambda laplace_df: compute_negation_probability(laplace_df, Ex3_Headers.GPA), axis=1)
         # Append the rank
         laplace_df[Ex3_Headers.RANK.value] = rank.value
         # Concat the new class probabilities
@@ -39,6 +40,7 @@ def compute_grade_frequencies(df):
 
 # Probability of a admision given a rank, gpa, and gre
 def compute_admision_frequencies(df):
+    posible_admit_classes = [0, 1]
     grade_combinations = [[0, 0], [0, 1], [1, 0], [1,1]]
     # Create empty df
     _df = pd.DataFrame()
@@ -51,7 +53,7 @@ def compute_admision_frequencies(df):
             # Compute sum across columns
             laplace_df = pd.DataFrame(data=filtered_df.sum(axis = 0)).transpose()
             # Apply Laplace to the frequencies given the current class
-            laplace_df = (laplace_df + 1) / (filtered_df.shape[0] + (len(Ex3_Ranks)*len(grade_combinations)))
+            laplace_df = (laplace_df + 1) / (filtered_df.shape[0] + len(posible_admit_classes))
             # Append the probability of no admition
             laplace_df['no_'+Ex3_Headers.ADMIT.value] = laplace_df.apply(lambda laplace_df: compute_negation_probability(laplace_df, Ex3_Headers.ADMIT), axis=1)
             # Append the fixed values
