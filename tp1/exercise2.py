@@ -5,6 +5,8 @@ from fileHandling import read_data
 from newsProcessing import get_key_words, compute_laplace_frequencies, compute_class_probability, build_binary_survey
 from constants import Ex2_Mode, Ex2_Headers, Ex2_Categoria
 from configurations import Configuration
+from plotting import plot_confusion_matrix
+import multiprocessing
 
 def get_data_from_matrix(confusion):
     FP = confusion.sum(axis=0) - np.diag(confusion)
@@ -60,19 +62,8 @@ def get_FP_rate(confusion):
     TN = data['TN']
     return FP/(FP+TN)
 
-def run_exercise_2(file, mode):
-    print('Importing news data...')
-    df = read_data(file)
-
-    allowed_categories = [Ex2_Categoria.DEPORTES, Ex2_Categoria.SALUD, Ex2_Categoria.ENTRETENIMIENTO, Ex2_Categoria.ECONOMIA]
-    allowed_categories = [e.value for e in allowed_categories]
-    df = df[df[Ex2_Headers.CATEGORIA.value].isin(allowed_categories)]
-    msk = np.random.rand(len(df)) < 0.9
-    train = df[msk]
-    test = df[~msk]
-
-    print('Processing training set...')
-    key_words = get_key_words(train, allowed_categories, 50, is_analysis=mode == Ex2_Mode.ANALYZE.value)
+def perform_analysis(train, test, mode, word_count, allowed_categories, plot = True):
+    key_words = get_key_words(train, allowed_categories, word_count, is_analysis=mode == Ex2_Mode.ANALYZE.value)
     if mode == Ex2_Mode.SOLVE.value:
         frequencies = compute_laplace_frequencies(train, key_words, allowed_categories)
         class_probability = compute_class_probability(train, allowed_categories)
@@ -81,6 +72,7 @@ def run_exercise_2(file, mode):
         test_df = build_binary_survey(test, key_words)
         total_elements, current_step = test_df.shape[0], 0
         confusion = np.zeros((len(allowed_categories), len(allowed_categories)))
+        error = 0
 
         # Apply Bayes to every article in testing set
         for index in range(total_elements):
@@ -95,10 +87,68 @@ def run_exercise_2(file, mode):
             # Use as a sample the indexed location
             predicted, actual = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
             confusion[allowed_categories.index(actual), allowed_categories.index(predicted)] += 1
-        print(confusion)
+            error += (1 if predicted != actual else 0)
+        if plot:
+            plot_confusion_matrix(confusion, allowed_categories)
         print("Accuracy: ", get_accuracy(confusion))
         print("Precision: ", get_precision(confusion))
         print("Recall: ", get_recall(confusion))
         print("F1: ", get_F1_score(confusion))
         print("TP Rate: ", get_TP_rate(confusion))
         print("FP Rate: ", get_FP_rate(confusion))
+        return error
+
+def run_cross_validation_iteration(i, elements_per_bin, df, mode, word_count, allowed_categories, results):
+    print('Running cross validation with bin number', i)
+    test = df.iloc[i*elements_per_bin:(i+1)*elements_per_bin]
+    train = df[~df.index.isin(list(test.index.values))]
+    error = perform_analysis(train, test, mode, word_count, allowed_categories, plot=False)
+    results[i] = error
+
+def run_cross_validation(df, cross_k, mode, word_count, allowed_categories):
+    # Calculate number of elements per bin
+    elements_per_bin = int(len(df)/cross_k)
+    print("Running cross validation...")
+    # Iterate and run method
+    manager = multiprocessing.Manager()
+    # Need this dictionary due to non-shared memory issues
+    return_dict = manager.dict()
+    jobs = [0] * cross_k
+    # Create multiple jobs
+    for i in range(cross_k):
+        jobs[i] = multiprocessing.Process(target=run_cross_validation_iteration, args=(i, elements_per_bin, df, mode, word_count, allowed_categories, return_dict))
+        jobs[i].start()
+    # Join the jobs for the results
+    for i in range(len(jobs)):
+        jobs[i].join()
+    error = np.array(return_dict.values()).sum() / cross_k
+    print('Total cross validation error is', error)
+
+def run_exercise_2(file, mode, word_count, cross_k = None):
+    print('Importing news data...')
+    df = read_data(file)
+
+    allowed_categories = [Ex2_Categoria.DEPORTES, Ex2_Categoria.SALUD, Ex2_Categoria.ENTRETENIMIENTO, Ex2_Categoria.ECONOMIA]
+    allowed_categories = [e.value for e in allowed_categories]
+    df = df[df[Ex2_Headers.CATEGORIA.value].isin(allowed_categories)]
+    # Shuffle the DF
+    df = df.sample(frac=1)
+
+    print('Processing training set...')
+    if mode == Ex2_Mode.SOLVE.value:
+        # No cross validation, just use 90% as train and 10% as test
+        if cross_k == None:
+            train_number = int(len(df)/10) * 9
+            train = df.iloc[0:train_number]
+            test = df.iloc[train_number+1:len(df)]
+            perform_analysis(train, test, mode, word_count, allowed_categories)
+        else:
+            run_cross_validation(df, cross_k, mode, word_count, allowed_categories)
+    else:
+        print(df.iloc[10:20])
+        # Use the 90% as train
+        train_number = int(len(df)/10) * 9
+        train = df.iloc[0:train_number]
+        test = df.iloc[train_number+1:len(df)]
+        get_key_words(train, allowed_categories, word_count, is_analysis=mode == Ex2_Mode.ANALYZE.value)
+        

@@ -14,6 +14,8 @@ def main():
     parser.add_argument('-f', dest='file', required=True)   # Archivo para usar
     parser.add_argument('-p', dest='point', required=True)  # Ejercicio a ejecutar
     parser.add_argument('-m', dest='mode')  # Modo
+    parser.add_argument('-wc', dest='word_count')  # Modo
+    parser.add_argument('-k', dest='cross_k')  # Modo
     
     # The following two are if using Python 3.9 and up
     #parser.add_argument('-v', dest='verbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
@@ -26,6 +28,10 @@ def main():
 
     try:
         item = int(args.point)
+        word_count = int(args.word_count)
+        cross_k = None
+        if args.cross_k != None:
+            cross_k = int(args.cross_k)
         if item <= 0 or item > 3:
             print("[ERROR] Invalid value for input, must be between 1 and 3")
             exit(0)
@@ -41,7 +47,7 @@ def main():
     if item == 1:
         run_exercise_1(args.file)
     elif item == 2:
-        run_exercise_2(args.file, args.mode)
+        run_exercise_2(args.file, args.mode, word_count, cross_k)
     elif item == 3:
         run_exercise_3(args.file)
 
