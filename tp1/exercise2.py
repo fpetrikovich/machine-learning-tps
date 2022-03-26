@@ -87,7 +87,7 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
             # Use as a sample the indexed location
             predicted, actual, results = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
             confusion[allowed_categories.index(actual), allowed_categories.index(predicted)] += 1
-            roc_data.append({'probabilities': results, 'actual_classification': predicted})
+            roc_data.append({'probabilities': results, 'actual_classification': actual})
             error += (1 if predicted != actual else 0)
         if plot:
             plot_confusion_matrix(confusion, allowed_categories)
