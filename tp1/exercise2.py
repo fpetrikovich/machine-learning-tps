@@ -7,6 +7,7 @@ from constants import Ex2_Mode, Ex2_Headers, Ex2_Categoria
 from configurations import Configuration
 from plotting import plot_confusion_matrix
 import multiprocessing
+import matplotlib.pyplot as plt
 
 def get_data_from_matrix(confusion):
     FP = confusion.sum(axis=0) - np.diag(confusion)
@@ -15,15 +16,13 @@ def get_data_from_matrix(confusion):
     TN = confusion.sum() - (FP + FN + TP)
     return {'TP':TP, 'TN':TN, 'FP':FP, 'FN':FN}
 
-def get_total_accuracy(confusion):
-    TP = 0.0
-    events = 0.0
+def get_error(confusion):
+    mistakes = 0
     for i in range(len(confusion[0])):
         for j in range(len(confusion[0])):
-            events += confusion[i,j]
-            if i==j:
-                TP += confusion[i,j]
-    return TP / events
+            if i!=j:
+                mistakes += confusion[i,j]
+    return mistakes
 
 def get_accuracy(confusion):
     data = get_data_from_matrix(confusion)
@@ -67,6 +66,7 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
     if mode == Ex2_Mode.SOLVE.value:
         frequencies = compute_laplace_frequencies(train, key_words, allowed_categories)
         class_probability = compute_class_probability(train, allowed_categories)
+        roc_data = []
 
         print('Processing testing set...')
         test_df = build_binary_survey(test, key_words)
@@ -85,8 +85,9 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
                 print(test.iloc[index][Ex2_Headers.TITULAR.value], '-->', test.iloc[index][Ex2_Headers.CATEGORIA.value])
                 print('')
             # Use as a sample the indexed location
-            predicted, actual = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
+            predicted, actual, results = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
             confusion[allowed_categories.index(actual), allowed_categories.index(predicted)] += 1
+            roc_data.append({'probabilities': results, 'actual_classification': predicted})
             error += (1 if predicted != actual else 0)
         if plot:
             plot_confusion_matrix(confusion, allowed_categories)
@@ -96,6 +97,8 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
         print("F1: ", get_F1_score(confusion))
         print("TP Rate: ", get_TP_rate(confusion))
         print("FP Rate: ", get_FP_rate(confusion))
+        print("Method Error = ", get_error(confusion))
+        draw_roc_curve(roc_data)
         return error
 
 def run_cross_validation_iteration(i, elements_per_bin, df, mode, word_count, allowed_categories, results):
@@ -124,11 +127,55 @@ def run_cross_validation(df, cross_k, mode, word_count, allowed_categories):
     error = np.array(return_dict.values()).sum() / cross_k
     print('Total cross validation error is', error)
 
+def draw_roc_curve(roc_data):
+    class_names = list(roc_data[0]['probabilities'].keys())
+    roc_curve = {
+        category: {"fp_rate": [],"tp_rate": [], "u":[]} for category in class_names
+    }
+    for u in np.arange(0, 1.1, 0.1):
+        for category in class_names:
+            FP,FN,TP,TN = 0,0,0,0
+            for article_results in roc_data:
+                if article_results['probabilities'][category] > u:
+                    # Answers "article is of this category"
+                    if category == article_results["actual_classification"]:
+                        TP += 1 # Correctly predicted positive result
+                    else:
+                        FP += 1 # Missed category by answering 'positive'
+                else:
+                    if category == article_results["actual_classification"]:
+                        FN += 1 # Missed category by answering 'negative'
+                    else:
+                        TN += 1 # Correctly predicted negative result
+            fp_rate = FP/float(FP+TN)
+            tp_rate = TP/float(TP+FN)
+            print("u=",int(u*10)/10,"\t",category, "\tTP=",TP, "\tFP=", FP, "\tFN=", FN, "\tTN=", TN)
+            roc_curve[category]["fp_rate"].append(fp_rate)
+            roc_curve[category]["tp_rate"].append(tp_rate)
+            roc_curve[category]["u"].append(u)
+    for category in class_names:
+        plt.plot(roc_curve[category]["fp_rate"], roc_curve[category]["tp_rate"], "-o", label=category)
+    line = [x for x in np.arange(0, 1.1, 0.1)]
+    plt.plot(line, line, "--", color="blue")
+    axes = plt.gca()
+    axes.set_xlim([-0.01,1.09])
+    axes.set_ylim([-0.01,1.09])
+    plt.xlabel("Tasa de Falsos Positivos")
+    plt.ylabel("Tasa de Verdaderos Positivos")
+    plt.legend()
+    plt.show()
+
 def run_exercise_2(file, mode, word_count, cross_k = None):
     print('Importing news data...')
     df = read_data(file)
 
-    allowed_categories = [Ex2_Categoria.DEPORTES, Ex2_Categoria.SALUD, Ex2_Categoria.ENTRETENIMIENTO, Ex2_Categoria.ECONOMIA]
+    allowed_categories = [  Ex2_Categoria.DEPORTES,
+                            Ex2_Categoria.SALUD,
+                            #Ex2_Categoria.INTERNACIONAL,
+                            Ex2_Categoria.ECONOMIA,
+                            Ex2_Categoria.CIENCIA_TECNOLOGIA,
+                            Ex2_Categoria.NACIONAL,
+                            Ex2_Categoria.ENTRETENIMIENTO]
     allowed_categories = [e.value for e in allowed_categories]
     df = df[df[Ex2_Headers.CATEGORIA.value].isin(allowed_categories)]
     # Shuffle the DF
@@ -151,4 +198,3 @@ def run_exercise_2(file, mode, word_count, cross_k = None):
         train = df.iloc[0:train_number]
         test = df.iloc[train_number+1:len(df)]
         get_key_words(train, allowed_categories, word_count, is_analysis=mode == Ex2_Mode.ANALYZE.value)
-        

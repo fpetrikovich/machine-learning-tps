@@ -47,4 +47,4 @@ def apply_bayes(example, frequencies, class_probability, header_names, class_hea
             max_classification = classification
     if Configuration.isVerbose():
         print("It's most likely to be", max_classification)
-    return max_classification, example[class_header][0]
+    return max_classification, example[class_header][0], results

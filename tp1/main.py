@@ -16,7 +16,7 @@ def main():
     parser.add_argument('-m', dest='mode')  # Modo
     parser.add_argument('-wc', dest='word_count')  # Modo
     parser.add_argument('-k', dest='cross_k')  # Modo
-    
+
     # The following two are if using Python 3.9 and up
     #parser.add_argument('-v', dest='verbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
     #parser.add_argument('-vv', dest='veryVerbose', action=argparse.BooleanOptionalAction, default=False)  # Verbose, print or not
@@ -26,10 +26,12 @@ def main():
     parser.add_argument('-vv', dest='veryVerbose', action='store_true')  # Verbose, print or not
     args = parser.parse_args()
 
+    word_count = 25
+    cross_k = None
     try:
         item = int(args.point)
-        word_count = int(args.word_count)
-        cross_k = None
+        if args.word_count != None:
+            word_count = int(args.word_count)
         if args.cross_k != None:
             cross_k = int(args.cross_k)
         if item <= 0 or item > 3:

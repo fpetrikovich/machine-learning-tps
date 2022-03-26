@@ -108,7 +108,7 @@ def get_mapping(df, possible_categories):
 def get_key_words(df, allowed_categories, n, is_analysis = False):
     # Count total appearances of words by category
     mapping = get_mapping(df, allowed_categories)
-    # Show pretty analysis view 
+    # Show pretty analysis view
     if is_analysis:
         show_top_n_by_category(mapping, n)
     # Get the top N of each category and group them in a set
