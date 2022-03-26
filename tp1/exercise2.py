@@ -90,20 +90,21 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
             error += (1 if predicted != actual else 0)
         if plot:
             plot_confusion_matrix(confusion, allowed_categories)
-        print("Accuracy: ", get_accuracy(confusion))
+        accuracy = get_accuracy(confusion)
+        print("Accuracy: ", accuracy)
         print("Precision: ", get_precision(confusion))
         print("Recall: ", get_recall(confusion))
         print("F1: ", get_F1_score(confusion))
         print("TP Rate: ", get_TP_rate(confusion))
         print("FP Rate: ", get_FP_rate(confusion))
-        return error
+        return error, accuracy
 
 def run_cross_validation_iteration(i, elements_per_bin, df, mode, word_count, allowed_categories, results):
     print('Running cross validation with bin number', i)
     test = df.iloc[i*elements_per_bin:(i+1)*elements_per_bin]
     train = df[~df.index.isin(list(test.index.values))]
-    error = perform_analysis(train, test, mode, word_count, allowed_categories, plot=False)
-    results[i] = error
+    error, precision = perform_analysis(train, test, mode, word_count, allowed_categories, plot=False)
+    results[i] = [error, precision]
 
 def run_cross_validation(df, cross_k, mode, word_count, allowed_categories):
     # Calculate number of elements per bin
@@ -121,8 +122,12 @@ def run_cross_validation(df, cross_k, mode, word_count, allowed_categories):
     # Join the jobs for the results
     for i in range(len(jobs)):
         jobs[i].join()
-    error = np.array(return_dict.values()).sum() / cross_k
-    print('Total cross validation error is', error)
+    # Calculate some metrics
+    values = return_dict.values()
+    errors = np.array([x[0] for x in values])
+    accuracies = np.array([x[1] for x in values])
+    print('Error average -->', np.average(errors, axis=0), 'std -->', np.std(errors, axis=0))
+    print('Accuracy average -->', np.average(accuracies, axis=0), 'std -->', np.std(accuracies, axis=0))
 
 def run_exercise_2(file, mode, word_count, cross_k = None):
     print('Importing news data...')
