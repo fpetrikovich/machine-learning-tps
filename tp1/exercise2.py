@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from bayes import apply_bayes
+from bayes import apply_bayes, prefilter_dfs
 from fileHandling import read_data
 from newsProcessing import get_key_words, compute_laplace_frequencies, compute_class_probability, build_binary_survey
 from constants import Ex2_Mode, Ex2_Headers, Ex2_Categoria
@@ -61,7 +61,7 @@ def get_FP_rate(confusion):
     TN = data['TN']
     return FP/(FP+TN)
 
-def perform_analysis(train, test, mode, word_count, allowed_categories, plot = True):
+def perform_analysis(train, test, mode, word_count, allowed_categories, plot = True, roc = False):
     key_words = get_key_words(train, allowed_categories, word_count, is_analysis=mode == Ex2_Mode.ANALYZE.value)
     if mode == Ex2_Mode.SOLVE.value:
         frequencies = compute_laplace_frequencies(train, key_words, allowed_categories)
@@ -74,6 +74,12 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
         confusion = np.zeros((len(allowed_categories), len(allowed_categories)))
         error = 0
 
+        # Get a clean version of the headers, without the class one 
+        clean_key_words = [x for x in key_words if x if not x == Ex2_Headers.CATEGORIA.value]
+
+        # Properly store memory to avoid extra computation
+        memory = prefilter_dfs(frequencies, class_probability, Ex2_Headers.CATEGORIA.value, allowed_categories, clean_key_words)
+
         # Apply Bayes to every article in testing set
         for index in range(total_elements):
             if index / 25 > current_step:
@@ -85,7 +91,7 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
                 print(test.iloc[index][Ex2_Headers.TITULAR.value], '-->', test.iloc[index][Ex2_Headers.CATEGORIA.value])
                 print('')
             # Use as a sample the indexed location
-            predicted, actual, results = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), frequencies, class_probability, key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
+            predicted, actual, results = apply_bayes(test_df.iloc[[index]].reset_index(drop=True), memory, clean_key_words, Ex2_Headers.CATEGORIA.value, allowed_categories, print_example=Configuration.isVeryVerbose())
             confusion[allowed_categories.index(actual), allowed_categories.index(predicted)] += 1
             roc_data.append({'probabilities': results, 'actual_classification': actual})
             error += (1 if predicted != actual else 0)
@@ -98,14 +104,15 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
         print("F1: ", get_F1_score(confusion))
         print("TP Rate: ", get_TP_rate(confusion))
         print("FP Rate: ", get_FP_rate(confusion))
-        draw_roc_curve(roc_data)
+        if roc:
+            draw_roc_curve(roc_data)
         return error, accuracy
 
 def run_cross_validation_iteration(i, elements_per_bin, df, mode, word_count, allowed_categories, results):
     print('Running cross validation with bin number', i)
     test = df.iloc[i*elements_per_bin:(i+1)*elements_per_bin]
     train = df[~df.index.isin(list(test.index.values))]
-    error, precision = perform_analysis(train, test, mode, word_count, allowed_categories, plot=False)
+    error, precision = perform_analysis(train, test, mode, word_count, allowed_categories, plot = False, roc = False)
     results[i] = [error, precision]
 
 def run_cross_validation(df, cross_k, mode, word_count, allowed_categories):
@@ -169,17 +176,18 @@ def draw_roc_curve(roc_data):
     plt.legend()
     plt.show()
 
-def run_exercise_2(file, mode, word_count, cross_k = None):
+def run_exercise_2(file, mode, word_count, cross_k = None, roc = False):
     print('Importing news data...')
     df = read_data(file)
 
     allowed_categories = [  Ex2_Categoria.DEPORTES,
                             Ex2_Categoria.SALUD,
-                            #Ex2_Categoria.INTERNACIONAL,
+                            Ex2_Categoria.ENTRETENIMIENTO,
                             Ex2_Categoria.ECONOMIA,
-                            Ex2_Categoria.CIENCIA_TECNOLOGIA,
-                            Ex2_Categoria.NACIONAL,
-                            Ex2_Categoria.ENTRETENIMIENTO]
+                            #Ex2_Categoria.CIENCIA_TECNOLOGIA,
+                            #Ex2_Categoria.NACIONAL,
+                            #Ex2_Categoria.INTERNACIONAL,
+                            ]
     allowed_categories = [e.value for e in allowed_categories]
     df = df[df[Ex2_Headers.CATEGORIA.value].isin(allowed_categories)]
     # Shuffle the DF
@@ -192,7 +200,7 @@ def run_exercise_2(file, mode, word_count, cross_k = None):
             train_number = int(len(df)/10) * 9
             train = df.iloc[0:train_number]
             test = df.iloc[train_number+1:len(df)]
-            perform_analysis(train, test, mode, word_count, allowed_categories)
+            perform_analysis(train, test, mode, word_count, allowed_categories, roc=roc)
         else:
             run_cross_validation(df, cross_k, mode, word_count, allowed_categories)
     else:

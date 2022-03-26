@@ -24,6 +24,7 @@ def main():
     # The following are for Python 3.8 and under
     parser.add_argument('-v', dest='verbose', action='store_true')  # Verbose, print or not
     parser.add_argument('-vv', dest='veryVerbose', action='store_true')  # Verbose, print or not
+    parser.add_argument('-roc', dest='roc', action='store_true')  # Verbose, print or not
     args = parser.parse_args()
 
     word_count = 25
@@ -49,7 +50,7 @@ def main():
     if item == 1:
         run_exercise_1(args.file)
     elif item == 2:
-        run_exercise_2(args.file, args.mode, word_count, cross_k)
+        run_exercise_2(args.file, args.mode, word_count, cross_k, args.roc)
     elif item == 3:
         run_exercise_3(args.file)
 

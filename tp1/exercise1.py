@@ -1,5 +1,5 @@
 from fileHandling import read_data
-from bayes import apply_bayes
+from bayes import apply_bayes, prefilter_dfs
 from constants import Ex1_Headers, Ex1_Nacionalidad
 import pandas as pd
 
@@ -46,8 +46,12 @@ def run_exercise_1(file):
     frequencies, class_probability = compute_laplace_frequencies(df), compute_class_probability(df)
     # Build samples to test
     sample_1, sample_2 = build_examples(df.columns)
+    # Clean header names
+    clean_headers = [e.value for e in Ex1_Headers if not e == Ex1_Headers.NACIONALIDAD]
+    # Precompute DF operations for speed
+    memory = prefilter_dfs(frequencies, class_probability, Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad], clean_headers)
     # Apply Bayes to both
     print("------------------------")
-    apply_bayes(sample_1, frequencies, class_probability, [e.value for e in Ex1_Headers], Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])
+    apply_bayes(sample_1, memory, clean_headers, Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])
     print("------------------------")
-    apply_bayes(sample_2, frequencies, class_probability, [e.value for e in Ex1_Headers], Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])
+    apply_bayes(sample_2, memory, clean_headers, Ex1_Headers.NACIONALIDAD.value, [e.value for e in Ex1_Nacionalidad])

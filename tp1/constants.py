@@ -29,6 +29,12 @@ class Ex2_Categoria(Enum):
     ECONOMIA = "Economia"
     NOTICIAS_DESTACADAS = "Noticias destacadas"
 
+class Memory_Keys(Enum):
+    FREQUENCIES = 1
+    PROBABILITY = 2
+    CLASS_PROBABILITY = 3
+    KEY_FREQUENCIES = 4
+
 class Ex2_Mode(Enum):
     SOLVE = "solve"
     ANALYZE = "analyze"

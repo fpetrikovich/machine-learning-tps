@@ -1,33 +1,50 @@
 # Get row for specific class
 from fileHandling import print_entire_df
 from configurations import Configuration
+from constants import Memory_Keys
 
 def get_df_for_class(df, header_name, _class):
-    return df[df[header_name] == _class]
+    return df[df[header_name] == _class].reset_index(drop=True)
 
-def compute_hmap_for_class(sample, frequencies, class_probability, header_names, class_header, class_to_calculate):
-    # Get the probabilities for just this class
-    current_class_frequencies = get_df_for_class(frequencies, class_header, class_to_calculate)
-    current_class_probability = get_df_for_class(class_probability, class_header, class_to_calculate)
+def prefilter_dfs(frequencies, class_probability, class_header, classes, header_names):
+    # Create the map
+    memory = {}
+    memory[Memory_Keys.FREQUENCIES] = {}
+    memory[Memory_Keys.PROBABILITY] = {}
+    memory[Memory_Keys.CLASS_PROBABILITY] = {}
+    memory[Memory_Keys.KEY_FREQUENCIES] = {}
+    for _class in classes:
+        memory[Memory_Keys.FREQUENCIES][_class] = get_df_for_class(frequencies, class_header, _class)
+        memory[Memory_Keys.KEY_FREQUENCIES][_class] = {}
+        for header in header_names:
+            memory[Memory_Keys.KEY_FREQUENCIES][_class][header] = memory[Memory_Keys.FREQUENCIES][_class].at[0,header]
+        memory[Memory_Keys.PROBABILITY][_class] = get_df_for_class(class_probability, class_header, _class)
+        memory[Memory_Keys.CLASS_PROBABILITY][_class] = memory[Memory_Keys.PROBABILITY][_class].iat[0,0]
+    # Lose reference for garbage collector
+    memory[Memory_Keys.PROBABILITY] = 0
+    memory[Memory_Keys.FREQUENCIES] = 0
+    return memory
+
+def compute_hmap_for_class(example_memory, header_names, class_to_calculate, memory):
     # Start with the probability of the class itself
-    probability = current_class_probability.iloc[0][0]
+    probability = memory[Memory_Keys.CLASS_PROBABILITY][class_to_calculate]
     for header in header_names:
-        # Ignore class name header (nationality / category)
-        if header != class_header:
-            # Determine if we need the probability of it being a "positive" or a "negative" example
-            # If it's a positive example, just multiply, otherwise use 1 - probability
-            if (sample[header][0] == 1):
-                probability *= current_class_frequencies.iloc[0][header]
-            else:
-                probability *= (1 - current_class_frequencies.iloc[0][header])
+        # Determine if we need the probability of it being a "positive" or a "negative" example
+        # If it's a positive example, just multiply, otherwise use 1 - probability
+        if (example_memory[header] == 1):
+            probability *= memory[Memory_Keys.KEY_FREQUENCIES][class_to_calculate][header]
+        else:
+            probability *= (1 - memory[Memory_Keys.KEY_FREQUENCIES][class_to_calculate][header])
     return probability
 
-def apply_bayes(example, frequencies, class_probability, header_names, class_header, class_names, print_example = True):
+def apply_bayes(example, memory, header_names, class_header, class_names, print_example = True):
     results, total, max, max_classification = {}, 0, 0, None
+    # Maps the probabilities so that it can access way faster
+    example_memory = {header:example[header][0] for header in header_names}
     # Calculate the hmap without denominator
     for classification in class_names:
         # Compute the result for each nationality
-        results[classification] = compute_hmap_for_class(example, frequencies, class_probability, header_names, class_header, classification)
+        results[classification] = compute_hmap_for_class(example_memory, header_names, classification, memory)
         # Add it towards the total so that we get the correct probability
         total += results[classification]
     # Pretty prints
