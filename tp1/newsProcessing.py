@@ -63,6 +63,7 @@ def compute_laplace_frequencies(df, key_words, possible_categories):
     df2 = pd.DataFrame()
     for category in possible_categories:
         matches = {Ex2_Headers.CATEGORIA.value: category}
+        total = 0
         for word in key_words:
             matches[word] = 0
         filteredDf = df[df[Ex2_Headers.CATEGORIA.value] == category]
@@ -75,9 +76,10 @@ def compute_laplace_frequencies(df, key_words, possible_categories):
             for word in key_words:
                 if word in tokenized_headline:
                     matches[word] += 1
+                    total += 1
         # Apply Laplace and add to df
         for word in key_words:
-            matches[word] = (matches[word] + 1) / (filteredDf.shape[0] + len(possible_categories))
+            matches[word] = (matches[word] + 1) / (total + 2)
         df2 = pd.concat([df2, pd.DataFrame([matches])], ignore_index=True)
     return df2
 

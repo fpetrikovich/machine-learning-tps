@@ -116,7 +116,23 @@ Ex2_Blacklist = {
     'Desde': True,
     'cuando': True,
     'ella': True,
-    'también': True
+    'también': True,
+    'espera': True,
+    'hace': True,
+    'todos': True,
+    'tener': True,
+    'Tiene': True,
+    'sabe': True,
+    'dejar': True,
+    'piden': True,
+    'cuál': True,
+    'Estoy': True,
+    'quién': True,
+    'ahora': True,
+    'Para': True,
+    '12.000': True,
+    '¿Cómo': True,
+    '¿Qué': True
 }
 
 Ex2_Must_Have = ['tuberculosis', 'investigación']
