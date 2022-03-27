@@ -8,6 +8,8 @@ def run_exercise_3(file):
     p_rank_table = compute_rank_probability(df)
     p_grade_table = compute_grade_frequencies(df)
     p_admit_table = compute_admision_frequencies(df)
+    print_entire_df(p_rank_table)
+    print_entire_df(p_grade_table)
     print_entire_df(p_admit_table)
     # Item A
     print("~~~~~~~~~~~~~~~~~~~~ ITEM A ~~~~~~~~~~~~~~~~~~~~\n")

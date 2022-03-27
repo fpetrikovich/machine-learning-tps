@@ -1,4 +1,4 @@
-from fileHandling import read_data
+from fileHandling import print_entire_df, read_data
 from bayes import apply_bayes
 from constants import Ex1_Headers, Ex1_Nacionalidad
 import pandas as pd
@@ -9,6 +9,7 @@ def build_examples(columns):
     sample_2 = pd.DataFrame(data=[[0,1,1,0,1,'?']], columns=columns)
     return sample_1, sample_2
 
+# Finding P(X | Nationality)
 def compute_laplace_frequencies(df):
     # Create empty df
     _df = pd.DataFrame()
@@ -18,13 +19,14 @@ def compute_laplace_frequencies(df):
         # Compute sum across columns
         laplaceDf = pd.DataFrame(data=filteredDf.sum(axis = 0, numeric_only = True)).transpose()
         # Apply Laplace to the frequencies given the current class
-        laplaceDf = (laplaceDf + 1) / (filteredDf.shape[0] + len(Ex1_Nacionalidad))
+        laplaceDf = (laplaceDf + 1) / (filteredDf.shape[0] + 2)
         # Append the nationality
         laplaceDf[Ex1_Headers.NACIONALIDAD.value] = nationality.value
         # Concat the new class probabilities
         _df = pd.concat([_df, laplaceDf], ignore_index = True)
     return _df
 
+# Calculating probability of nationality P(Nationality)
 def compute_class_probability(df):
     # Create empty df
     _df = pd.DataFrame()

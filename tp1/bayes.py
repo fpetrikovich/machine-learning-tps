@@ -5,7 +5,7 @@ from configurations import Configuration
 def get_df_for_class(df, header_name, _class):
     return df[df[header_name] == _class]
 
-def compute_hmap_for_class(sample, frequencies, class_probability, header_names, class_header, class_to_calculate):
+def compute_naive_bayes_for_class(sample, frequencies, class_probability, header_names, class_header, class_to_calculate):
     # Get the probabilities for just this class
     current_class_frequencies = get_df_for_class(frequencies, class_header, class_to_calculate)
     current_class_probability = get_df_for_class(class_probability, class_header, class_to_calculate)
@@ -27,7 +27,7 @@ def apply_bayes(example, frequencies, class_probability, header_names, class_hea
     # Calculate the hmap without denominator
     for classification in class_names:
         # Compute the result for each nationality
-        results[classification] = compute_hmap_for_class(example, frequencies, class_probability, header_names, class_header, classification)
+        results[classification] = compute_naive_bayes_for_class(example, frequencies, class_probability, header_names, class_header, classification)
         # Add it towards the total so that we get the correct probability
         total += results[classification]
     # Pretty prints
