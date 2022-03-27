@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-roc', dest='roc', action='store_true')  # Verbose, print or not
     args = parser.parse_args()
 
-    word_count = 25
+    word_count = 250
     cross_k = None
     try:
         item = int(args.point)
