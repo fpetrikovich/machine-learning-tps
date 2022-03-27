@@ -166,10 +166,11 @@ def draw_roc_curve(roc_data):
             roc_curve[category]["u"].append(u)
     for category in class_names:
         plt.plot(roc_curve[category]["fp_rate"], roc_curve[category]["tp_rate"], "-o", label=category)
-        for i in range(len(roc_curve[category]["fp_rate"])):
-            u = int(roc_curve[category]["u"][i]*10)/10.0
-            if u*10 % 5 == 0:
-                plt.text(roc_curve[category]["fp_rate"][i]+0.005, roc_curve[category]["tp_rate"][i]-0.005, u)
+        if Configuration.isVerbose():
+            for i in range(len(roc_curve[category]["fp_rate"])):
+                u = int(roc_curve[category]["u"][i]*10)/10.0
+                if u*10 % 5 == 0:
+                    plt.text(roc_curve[category]["fp_rate"][i]+0.005, roc_curve[category]["tp_rate"][i]-0.005, u)
     line = [x for x in np.arange(0, 1.1, 0.1)]
     plt.plot(line, line, "--", color="grey")
     ax = plt.gca()
