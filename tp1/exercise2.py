@@ -74,7 +74,7 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
         confusion = np.zeros((len(allowed_categories), len(allowed_categories)))
         error = 0
 
-        # Get a clean version of the headers, without the class one 
+        # Get a clean version of the headers, without the class one
         clean_key_words = [x for x in key_words if x if not x == Ex2_Headers.CATEGORIA.value]
 
         # Properly store memory to avoid extra computation
@@ -98,12 +98,13 @@ def perform_analysis(train, test, mode, word_count, allowed_categories, plot = T
         if plot:
             plot_confusion_matrix(confusion, allowed_categories)
         accuracy = get_accuracy(confusion)
-        print("Accuracy: ", accuracy)
-        print("Precision: ", get_precision(confusion))
-        print("Recall: ", get_recall(confusion))
-        print("F1: ", get_F1_score(confusion))
-        print("TP Rate: ", get_TP_rate(confusion))
-        print("FP Rate: ", get_FP_rate(confusion))
+        print("\n         \t", allowed_categories)
+        print("Accuracy: \t", accuracy)
+        print("Precision: \t", get_precision(confusion))
+        print("Recall: \t", get_recall(confusion))
+        print("F1: \t", get_F1_score(confusion))
+        print("TP Rate: \t", get_TP_rate(confusion))
+        print("FP Rate: \t", get_FP_rate(confusion), "\n")
         if roc:
             draw_roc_curve(roc_data)
         return error, accuracy
@@ -160,17 +161,20 @@ def draw_roc_curve(roc_data):
                         TN += 1 # Correctly predicted negative result
             fp_rate = FP/float(FP+TN)
             tp_rate = TP/float(TP+FN)
-            print("u=",int(u*10)/10,"\t",category, "\tTP=",TP, "\tFP=", FP, "\tFN=", FN, "\tTN=", TN)
             roc_curve[category]["fp_rate"].append(fp_rate)
             roc_curve[category]["tp_rate"].append(tp_rate)
             roc_curve[category]["u"].append(u)
     for category in class_names:
         plt.plot(roc_curve[category]["fp_rate"], roc_curve[category]["tp_rate"], "-o", label=category)
+        for i in range(len(roc_curve[category]["fp_rate"])):
+            u = int(roc_curve[category]["u"][i]*10)/10.0
+            if u*10 % 5 == 0:
+                plt.text(roc_curve[category]["fp_rate"][i]+0.005, roc_curve[category]["tp_rate"][i]-0.005, u)
     line = [x for x in np.arange(0, 1.1, 0.1)]
-    plt.plot(line, line, "--", color="blue")
-    axes = plt.gca()
-    axes.set_xlim([-0.01,1.09])
-    axes.set_ylim([-0.01,1.09])
+    plt.plot(line, line, "--", color="grey")
+    ax = plt.gca()
+    ax.set_xlim([-0.05,1.05])
+    ax.set_ylim([-0.05,1.05])
     plt.xlabel("Tasa de Falsos Positivos")
     plt.ylabel("Tasa de Verdaderos Positivos")
     plt.legend()
@@ -184,9 +188,9 @@ def run_exercise_2(file, mode, word_count, cross_k = None, roc = False):
                             Ex2_Categoria.SALUD,
                             Ex2_Categoria.ENTRETENIMIENTO,
                             Ex2_Categoria.ECONOMIA,
-                            #Ex2_Categoria.CIENCIA_TECNOLOGIA,
-                            #Ex2_Categoria.NACIONAL,
-                            #Ex2_Categoria.INTERNACIONAL,
+                            Ex2_Categoria.CIENCIA_TECNOLOGIA,
+                            Ex2_Categoria.NACIONAL,
+                            Ex2_Categoria.INTERNACIONAL,
                             ]
     allowed_categories = [e.value for e in allowed_categories]
     df = df[df[Ex2_Headers.CATEGORIA.value].isin(allowed_categories)]
