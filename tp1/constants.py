@@ -29,6 +29,12 @@ class Ex2_Categoria(Enum):
     ECONOMIA = "Economia"
     NOTICIAS_DESTACADAS = "Noticias destacadas"
 
+class Memory_Keys(Enum):
+    FREQUENCIES = 1
+    PROBABILITY = 2
+    CLASS_PROBABILITY = 3
+    KEY_FREQUENCIES = 4
+
 class Ex2_Mode(Enum):
     SOLVE = "solve"
     ANALYZE = "analyze"
@@ -110,7 +116,23 @@ Ex2_Blacklist = {
     'Desde': True,
     'cuando': True,
     'ella': True,
-    'también': True
+    'también': True,
+    'espera': True,
+    'hace': True,
+    'todos': True,
+    'tener': True,
+    'Tiene': True,
+    'sabe': True,
+    'dejar': True,
+    'piden': True,
+    'cuál': True,
+    'Estoy': True,
+    'quién': True,
+    'ahora': True,
+    'Para': True,
+    '12.000': True,
+    '¿Cómo': True,
+    '¿Qué': True
 }
 
 Ex2_Must_Have = ['tuberculosis', 'investigación']

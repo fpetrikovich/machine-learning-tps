@@ -141,7 +141,7 @@ def probability_admision_given_rank_and_grade(admit_table, rank, gre, gpa):
     filtered_df = grade_df_filtering(rank_df_filtering(admit_table, rank), discretized_gre, discretized_gpa)
     result = filtered_df[Ex3_Headers.ADMIT.value].values[0]
 
-    print("################ P(A=0 | R=" + str(rank) + ", GRE=" + str(gre) + ", GPA=" + str(gpa) + ") ################")
+    print("################ P(A=1 | R=" + str(rank) + ", GRE=" + str(gre) + ", GPA=" + str(gpa) + ") ################")
     print("Probability of being admitted given the specified conditions:")
     print(result)
     print()
