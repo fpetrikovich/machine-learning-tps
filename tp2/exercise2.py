@@ -62,6 +62,11 @@ def preprocess_dataset(df):
            Ex2_Title_Sentiment.POSITIVE.value, Ex2_Headers.TITLE_SENTIMENT.value] = 1
     df.loc[df[Ex2_Headers.TITLE_SENTIMENT.value] ==
            Ex2_Title_Sentiment.NEGATIVE.value, Ex2_Headers.TITLE_SENTIMENT.value] = 0
+    # Normalize
+    temp_df = df[Ex2_Headers.WORDCOUNT.value]
+    df[Ex2_Headers.WORDCOUNT.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
+    temp_df = df[Ex2_Headers.SENTIMENT_VALUE.value]
+    df[Ex2_Headers.SENTIMENT_VALUE.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
     return df
 
 
