@@ -36,10 +36,10 @@ def main():
             print("[ERROR] Invalid value for input, must be between 1 and 2")
             exit(0)
         if item == 2:
-            if args.mode == Ex2_Modes.SIMPLE.value:
-                mode = Ex2_Modes.SIMPLE
-            elif args.mode == Ex2_Modes.WEIGHTED.value:
+            if args.mode == Ex2_Modes.WEIGHTED.value:
                 mode = Ex2_Modes.WEIGHTED
+            else:
+                mode = Ex2_Modes.SIMPLE
             k_neighbors = int(args.k_neighbors)
     except:
         print("[ERROR] Invalid option input")

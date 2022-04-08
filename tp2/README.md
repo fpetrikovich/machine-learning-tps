@@ -28,12 +28,13 @@ pip freeze > requirements.txt
 
 Para ejecutar se usa la siguiente llamada:
 ```
-
+python main.py -f PATH_TO_FILE -p [1|2] [-k NEIGHBORS] [-v] [-m [weighted|simple]]
 ```
 
 ### Ejemplos de Llamados
 
 Ejemplos de los llamados:
 ```
-
+python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -m weighted
+python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -m simple
 ```
