@@ -13,6 +13,10 @@ class Ex2_Modes(Enum):
     WEIGHTED = 'weighted'
     SIMPLE = 'simple'
 
+class Ex2_Run(Enum):
+    SOLVE = 'solve'
+    ANALYZE = 'analyze'
+
 class Ex2_Title_Sentiment(Enum):
     POSITIVE = 'positive'
     NEGATIVE = 'negative'
