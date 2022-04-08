@@ -5,7 +5,10 @@ from functools import reduce
 from confusion import get_accuracy, get_precision
 from configurations import Configuration
 from plotting import plot_confusion_matrix
+import multiprocessing
 
+# Hide possible 0/0 warnings
+np.seterr(invalid='ignore')
 
 def show_analysis(df):
     # Get a filter for 1 star reviews
@@ -71,6 +74,7 @@ def get_neighbors(neighbors, k, n):
 def perform_classification(train, test, k_neighbors, mode):
     total_elements = test.shape[0]
     confusion = np.zeros((5, 5))
+    error = 0
     # Split labels from data
     train_data, train_label, test_data, test_label = train[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value]].reset_index(drop=True), train[[Ex2_Headers.STAR_RATING.value]].reset_index(
         drop=True), test[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value]].reset_index(drop=True), test[[Ex2_Headers.STAR_RATING.value]].reset_index(drop=True)
@@ -90,21 +94,56 @@ def perform_classification(train, test, k_neighbors, mode):
         # Map to classes
         # It maps to tuples like (class, weight), where weight is 1 or 1/distance**2 depending on the mode
         neighbors = list(map(
-            lambda x: (train_label[Ex2_Headers.STAR_RATING.value].iloc[x[1]], 1 if mode == Ex2_Modes.SIMPLE else 1/(x[0]**2)), sorted_distances_with_index))
+            lambda x: (train_label[Ex2_Headers.STAR_RATING.value].iloc[x[1]], 1 if mode == Ex2_Modes.SIMPLE else 1/((x[0] if x[0] > 0 else 1)**2)), sorted_distances_with_index))
         # Keep just the classes of those neighbors
         classification = get_neighbors(neighbors, k_neighbors, train.shape[0])
         # Build confusion matrix
         confusion[test_label[Ex2_Headers.STAR_RATING.value].iloc[i] -
                   1, classification - 1] += 1
+        # Add to error
+        error += 1 if test_label[Ex2_Headers.STAR_RATING.value].iloc[i] != classification else 0
     # Getting some metrics
     precision = get_precision(confusion)
     accuracy = get_accuracy(confusion)
     print('---------------------------')
-    print('Accuracy --> ', accuracy)
-    print('Precision --> ', precision)
-    if Configuration.isVerbose:
+    print('Error --> ', error, '\nAccuracy --> ', accuracy, '\nPrecision --> ', precision)
+    print('---------------------------')
+    if Configuration.isVerbose():
         plot_confusion_matrix(confusion, [str(x + 1) + ' Stars' for x in range(5)])
-    return precision, accuracy
+    return error, accuracy, precision
+
+def run_cross_validation_iteration(i, elements_per_bin, df, k_neighbors, mode, results):
+    print('Running cross validation with bin number', i)
+    test = df.iloc[i*elements_per_bin:(i+1)*elements_per_bin]
+    train = df[~df.index.isin(list(test.index.values))]
+    error, accuracy, precision = perform_classification(train, test, k_neighbors=k_neighbors, mode=mode)
+    results[i] = [error, accuracy, precision]
+
+def run_cross_validation(df, cross_k, k_neighbors, mode):
+    # Calculate number of elements per bin
+    elements_per_bin = int(len(df)/cross_k)
+    print("Running cross validation using", cross_k, "bins with", elements_per_bin, "elements per bin")
+    # Iterate and run method
+    manager = multiprocessing.Manager()
+    # Need this dictionary due to non-shared memory issues
+    return_dict = manager.dict()
+    jobs = [0] * cross_k
+    # Create multiple jobs
+    for i in range(cross_k):
+        jobs[i] = multiprocessing.Process(target=run_cross_validation_iteration, args=(i, elements_per_bin, df, k_neighbors, mode, return_dict))
+        jobs[i].start()
+    # Join the jobs for the results
+    for i in range(len(jobs)):
+        jobs[i].join()
+    # Calculate some metrics
+    values = return_dict.values()
+    errors = np.array([x[0] for x in values])
+    accuracies = np.array([x[1] for x in values])
+    print('---------------------------')
+    print('---------------------------')
+    print('---------------------------')
+    print('Error average -->', np.average(errors, axis=0), '\nstd -->', np.std(errors, axis=0))
+    print('Accuracy average -->', np.average(accuracies, axis=0), '\nstd -->', np.std(accuracies, axis=0))
 
 
 def run_exercise_2(filepath, mode, k_neighbors=5, cross_validation_k=None):
@@ -126,4 +165,4 @@ def run_exercise_2(filepath, mode, k_neighbors=5, cross_validation_k=None):
         perform_classification(train, test, k_neighbors=k_neighbors, mode=mode)
     # Apply cross validation with different processes
     else:
-        a = 2
+        run_cross_validation(df=df, cross_k=cross_validation_k, k_neighbors=k_neighbors, mode=mode)
