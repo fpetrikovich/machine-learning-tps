@@ -8,6 +8,9 @@ class Ex2_Headers(Enum):
     TEXT_SENTIMENT = 'textSentiment'
     STAR_RATING = 'Star Rating'
     SENTIMENT_VALUE = 'sentimentValue'
+    # Custom Headers
+    STAR_RATING_NORM = 'Star Rating Normalized'
+    ORIGINAL_ID = "Original Id"
 
 class Ex2_Modes(Enum):
     WEIGHTED = 'weighted'

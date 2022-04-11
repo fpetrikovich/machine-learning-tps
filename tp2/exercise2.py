@@ -41,7 +41,7 @@ def show_analysis(df):
     print('Review frequency')
     frecuencies = [df[df[Ex2_Headers.STAR_RATING.value] == x + 1].shape[0]/df.shape[0] for x in range(5)]
     for i in range(5):
-        print(i + 1, 'Stars frecuency -->', frecuencies[i])
+        print(i + 1, 'Stars frecuency -->', frecuencies[i], f'({int(frecuencies[i] * df.shape[0])})')
     print('\n---------------------------\n')
     print('Reviews with non-matching text/title sentiment')
     non_matching_sentiment_df = df[df[Ex2_Headers.TITLE_SENTIMENT.value] != df[Ex2_Headers.TEXT_SENTIMENT.value]]
@@ -50,6 +50,15 @@ def show_analysis(df):
     frecuencies = [non_matching_sentiment_df[non_matching_sentiment_df[Ex2_Headers.STAR_RATING.value] == x + 1].shape[0] for x in range(5)]
     for i in range(5):
         print(f'{i + 1} Stars frequency --> {frecuencies[i]/non_matching_sentiment_df.shape[0]} ({frecuencies[i]} occurences)')
+    print('\n---------------------------\n')
+    print('Entries with missing data')
+    empty_filter = df[Ex2_Headers.TITLE_SENTIMENT.value].notnull()
+    empty_df = df[~empty_filter]
+    print(f'Total number of rows that contain missing Title Sentiment --> {empty_df.shape[0]}')
+    for i in range(5):
+        filter = empty_df[Ex2_Headers.STAR_RATING.value] == (i + 1)
+        filtered_df = empty_df[filter]
+        print(f'{i + 1} Stars with empty data --> {filtered_df.shape[0]}')
     print('\n###########################')
     print('ANALYSIS - END')
     print('###########################\n')
@@ -67,6 +76,9 @@ def preprocess_dataset(df):
     df[Ex2_Headers.WORDCOUNT.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
     temp_df = df[Ex2_Headers.SENTIMENT_VALUE.value]
     df[Ex2_Headers.SENTIMENT_VALUE.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
+    temp_df = df[Ex2_Headers.STAR_RATING.value]
+    df[Ex2_Headers.STAR_RATING_NORM.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
+    df[Ex2_Headers.ORIGINAL_ID.value] = np.arange(0, df.shape[0])
     return df
 
 
@@ -104,13 +116,13 @@ def get_neighbors(neighbors, k, n):
 
 
 def perform_classification(train, test, k_neighbors, mode):
-    total_elements = test.shape[0]
+    total_train_elements, total_test_elements = train.shape[0], test.shape[0]
     confusion = np.zeros((5, 5))
     error = 0
     # Split labels from data
     train_data, train_label, test_data, test_label = train[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value]].reset_index(drop=True), train[[Ex2_Headers.STAR_RATING.value]].reset_index(
         drop=True), test[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value]].reset_index(drop=True), test[[Ex2_Headers.STAR_RATING.value]].reset_index(drop=True)
-    for i in range(total_elements):
+    for i in range(total_test_elements):
         distances_with_index = []
         # Get the current example
         example = test_data.iloc[i]
@@ -119,7 +131,7 @@ def perform_classification(train, test, k_neighbors, mode):
         # Process the square, then sum it and apply sqrt
         example_diff = ((example_diff**2).sum(axis=1))**.5
         # Add distances & index of example to array
-        for j in range(total_elements):
+        for j in range(total_train_elements):
             distances_with_index.append((example_diff.iloc[j], j))
         # Sort all items of the array (it will sort by default by ascending distance)
         sorted_distances_with_index = sorted(distances_with_index)
@@ -148,11 +160,13 @@ def perform_classification(train, test, k_neighbors, mode):
 
 
 def perform_reduced_classification(train, test, k_neighbors):
-    total_elements = test.shape[0]
+    total_train_elements, total_test_elements = train.shape[0], test.shape[0]
     # Split labels from data
-    train_data, test_data = train[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value]].reset_index(
-        drop=True), test[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value]].reset_index(drop=True)
-    for i in range(total_elements):
+    train_data, test_data = train[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING_NORM.value]].reset_index(
+        drop=True), test[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING_NORM.value]].reset_index(drop=True)
+    full_train_data, full_test_data = train[[Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value, Ex2_Headers.ORIGINAL_ID.value]].reset_index(
+        drop=True), test[[Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value, Ex2_Headers.ORIGINAL_ID.value]].reset_index(drop=True)
+    for i in range(total_test_elements):
         distances_with_index = []
         # Get the current example
         example = test_data.iloc[i]
@@ -161,7 +175,7 @@ def perform_reduced_classification(train, test, k_neighbors):
         # Process the square, then sum it and apply sqrt
         example_diff = ((example_diff**2).sum(axis=1))**.5
         # Add distances & index of example to array
-        for j in range(total_elements):
+        for j in range(total_train_elements):
             distances_with_index.append((example_diff.iloc[j], j))
         # Sort all items of the array (it will sort by default by ascending distance)
         # Get the nearest k neighbors requested
@@ -170,10 +184,10 @@ def perform_reduced_classification(train, test, k_neighbors):
         # Map to classes
         # It maps to tuples like (class, weight), where weight is 1 or 1/distance**2 depending on the mode
         neighbors = list(
-            map(lambda x: (train_data.iloc[x[1]], x[0]), sorted_distances_with_index))
+            map(lambda x: (full_train_data.iloc[x[1]], x[0]), sorted_distances_with_index))
         print('----------')
         print("----Point to test----")
-        print(example)
+        print(full_test_data.iloc[i])
         print("----Neighbors----")
         for n in neighbors:
             print(n)

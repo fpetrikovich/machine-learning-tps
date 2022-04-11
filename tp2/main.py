@@ -50,7 +50,6 @@ def main():
         exit(0)
 
     # Store configuration
-    print(args.verbose, cross_k)
     Configuration.setVerbose(args.verbose)
 
     print("[INFO] Running exercise", item, "...")
