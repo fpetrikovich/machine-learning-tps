@@ -71,6 +71,10 @@ def preprocess_dataset(df):
            Ex2_Title_Sentiment.POSITIVE.value, Ex2_Headers.TITLE_SENTIMENT.value] = 1
     df.loc[df[Ex2_Headers.TITLE_SENTIMENT.value] ==
            Ex2_Title_Sentiment.NEGATIVE.value, Ex2_Headers.TITLE_SENTIMENT.value] = 0
+    df.loc[df[Ex2_Headers.TEXT_SENTIMENT.value] ==
+           Ex2_Title_Sentiment.POSITIVE.value, Ex2_Headers.TEXT_SENTIMENT.value] = 1
+    df.loc[df[Ex2_Headers.TEXT_SENTIMENT.value] ==
+           Ex2_Title_Sentiment.NEGATIVE.value, Ex2_Headers.TEXT_SENTIMENT.value] = 0
     # Normalize
     temp_df = df[Ex2_Headers.WORDCOUNT.value]
     df[Ex2_Headers.WORDCOUNT.value] = (temp_df - temp_df.min()) / (temp_df.max() - temp_df.min())
@@ -81,6 +85,12 @@ def preprocess_dataset(df):
     df[Ex2_Headers.ORIGINAL_ID.value] = np.arange(0, df.shape[0])
     return df
 
+# Replaces the missing column data based on the given replacement information
+def perform_replacements(df, replacements):
+    for replace in replacements:
+        _to, _from = replace[0], replace[1]
+        df.loc[_to, Ex2_Headers.TITLE_SENTIMENT.value] = df.iloc[_from][Ex2_Headers.TITLE_SENTIMENT.value]
+    return df
 
 # Accumulates taking into account the neighbor weight
 def neighbor_accum_fn(accum, curr):
@@ -159,13 +169,15 @@ def perform_classification(train, test, k_neighbors, mode):
     return error, accuracy, precision
 
 
-def perform_reduced_classification(train, test, k_neighbors):
+def perform_reduced_classification(train, test, k_neighbors, print_results = False):
     total_train_elements, total_test_elements = train.shape[0], test.shape[0]
     # Split labels from data
     train_data, test_data = train[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING_NORM.value]].reset_index(
         drop=True), test[[Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING_NORM.value]].reset_index(drop=True)
     full_train_data, full_test_data = train[[Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value, Ex2_Headers.ORIGINAL_ID.value]].reset_index(
         drop=True), test[[Ex2_Headers.TITLE_SENTIMENT.value, Ex2_Headers.WORDCOUNT.value, Ex2_Headers.SENTIMENT_VALUE.value, Ex2_Headers.STAR_RATING.value, Ex2_Headers.ORIGINAL_ID.value]].reset_index(drop=True)
+    # Result
+    result = []
     for i in range(total_test_elements):
         distances_with_index = []
         # Get the current example
@@ -185,14 +197,30 @@ def perform_reduced_classification(train, test, k_neighbors):
         # It maps to tuples like (class, weight), where weight is 1 or 1/distance**2 depending on the mode
         neighbors = list(
             map(lambda x: (full_train_data.iloc[x[1]], x[0]), sorted_distances_with_index))
-        print('----------')
-        print("----Point to test----")
-        print(full_test_data.iloc[i])
-        print("----Neighbors----")
-        for n in neighbors:
-            print(n)
-        print('----------')
+        if print_results:
+            print('----------')
+            print("----Point to test----")
+            print(full_test_data.iloc[i])
+            print("----Neighbors----")
+            for n in neighbors:
+                print(n)
+            print('----------')
+        # Just get the first neighbor so that we can replace
+        result.append((full_test_data.iloc[i][Ex2_Headers.ORIGINAL_ID.value], neighbors[0][0][Ex2_Headers.ORIGINAL_ID.value]))
+    return result
 
+def analyze_fill_data(df, print_results):
+    # Run some preprocessing
+    df = preprocess_dataset(df)
+    filter = df[Ex2_Headers.TITLE_SENTIMENT.value].notnull()
+    # Try to complete with the 1 neighbor
+    # No shuffle for this dataset
+    train = df[filter]
+    test = df[~filter]
+    # Run classification to find nearest neighbor for each NaN one
+    replacements = perform_reduced_classification(train, test, k_neighbors=1, print_results=print_results)
+    df = perform_replacements(df, replacements)
+    return df
 
 def run_cross_validation_iteration(i, elements_per_bin, df, k_neighbors, mode, results):
     print('Running cross validation with bin number', i)
@@ -239,23 +267,24 @@ def run_exercise_2(filepath, mode, k_neighbors=5, cross_validation_k=None, solve
     if solve_mode == Ex2_Run.ANALYZE:
         # Perform the analysis requested
         show_analysis(df)
-        # Run some preprocessing
-        df = preprocess_dataset(df)
         # Print DF if this is verbose
         if Configuration.isVerbose():
             print_entire_df(df)
-        filter = df[Ex2_Headers.TITLE_SENTIMENT.value].notnull()
-        # Try to complete with the 1 neighbor
-        # No shuffle for this dataset
-        train = df[filter]
-        test = df[~filter]
-        # Run classification to find nearest neighbor for each NaN one
-        perform_reduced_classification(train, test, k_neighbors=k_neighbors)
+        # Analyze to fill missing data
+        df = analyze_fill_data(df, print_results=True)
+        print('---------------------------')
+        print('---------------------------')
+        print('AFTER MAKING REPLACEMENTS')
+        print('---------------------------')
+        print('---------------------------')
+        # Perform the analysis requested
+        show_analysis(df)
     else:
+        # Analyze to fill missing data
+        df = analyze_fill_data(df, print_results=Configuration.isVeryVerbose())
         # Shuffle df
         df = df.sample(frac=1)
         df = preprocess_dataset(df)
-        # TODO: Perform test & train division
         # No cross validation scenario
         if cross_validation_k == None:
             # Divide dataset

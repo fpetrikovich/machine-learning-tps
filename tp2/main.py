@@ -51,6 +51,7 @@ def main():
 
     # Store configuration
     Configuration.setVerbose(args.verbose)
+    Configuration.setVeryVerbose(args.veryVerbose)
 
     print("[INFO] Running exercise", item, "...")
     if item == 1:
