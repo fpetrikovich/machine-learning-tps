@@ -55,8 +55,7 @@ def main():
 
     print("[INFO] Running exercise", item, "...")
     if item == 1:
-        # run_exercise_1(args.file)
-        a = 1
+        run_exercise_1(args.file, cross_validation_k=cross_k, solve_mode=solve_mode)
     elif item == 2:
         run_exercise_2(args.file, mode=mode, k_neighbors=k_neighbors, cross_validation_k=cross_k, solve_mode=solve_mode)
 

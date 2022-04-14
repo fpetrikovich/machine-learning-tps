@@ -42,6 +42,8 @@ Parámetros:
 
 Ejemplos de los llamados:
 ```
+python main.py -f input/german_credit.csv -p 1 -crossk 5 -v -sm solve
+python main.py -f input/german_credit.csv -p 1 -sm solve
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -sm analyze
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -m weighted -sm solve
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -m simple -sm solve
