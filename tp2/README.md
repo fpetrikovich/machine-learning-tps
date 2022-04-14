@@ -50,3 +50,8 @@ python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -m simple -sm solve
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -crossk 5 -m weighted -sm solve
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -crossk 5 -m simple -sm solve
 ```
+
+El árbol del Ejercicio 1 puede generarse ejecutando:
+```
+dot -Tpdf tree.dot -o tree.pdf
+```
