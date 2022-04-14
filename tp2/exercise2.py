@@ -49,7 +49,7 @@ def show_analysis(df):
     print('Relative frequency -->', non_matching_sentiment_df.shape[0] / df.shape[0])
     frecuencies = [non_matching_sentiment_df[non_matching_sentiment_df[Ex2_Headers.STAR_RATING.value] == x + 1].shape[0] for x in range(5)]
     for i in range(5):
-        print(f'{i + 1} Stars frequency --> {frecuencies[i]/non_matching_sentiment_df.shape[0]} ({frecuencies[i]} occurences)')
+        print(f'{i + 1} Stars frequency --> {frecuencies[i]/df[df[Ex2_Headers.STAR_RATING.value] == i + 1].shape[0]} ({frecuencies[i]} occurences)')
     print('\n---------------------------\n')
     print('Entries with missing data')
     empty_filter = df[Ex2_Headers.TITLE_SENTIMENT.value].notnull()

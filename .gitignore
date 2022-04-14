@@ -6,3 +6,7 @@ tp1/__pycache__/
 tp1/.DS_Store
 
 tp2/__pycache__/
+
+.DS_Store
+
+tp2/scripts/results.txt
