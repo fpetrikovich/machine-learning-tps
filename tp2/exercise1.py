@@ -9,25 +9,53 @@ import datetime
 import math
 
 EXAMPLES_UMBRAL = 5
-GAIN_UMBRAL = 0.05
-HEIGHT_LIMIT = 8
+GAIN_UMBRAL = 0.01
+HEIGHT_LIMIT = 3
 node_counter = 0
 
 def show_analysis(df):
-    print("Coming soon")
+    df = df.sample(frac=1)
+    train_number = int(len(df)/EX1_DIVISION) * (EX1_DIVISION - 1)
+    train = df.iloc[0:train_number]
+    test = df.iloc[train_number+1:len(df)]
+    nodes = []
+    train_precisions = []
+    test_precisions = []
+    examples_u = 0
+    gain_u = 0
+    for max_height in range(25):
+        print(examples_u," < examples,", gain_u, " < gain,", "height < ", max_height)
+        tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height)
+        amount_of_nodes = count_tree_nodes(tree)
+        if len(nodes) == 0 or amount_of_nodes != nodes[-1]:
+            nodes.append(count_tree_nodes(tree))
+            error, accuracy, precision = perform_classification(train, train, tree, Ex1_Headers.CREDITABILITY.value)
+            train_precisions.append(1 - error/train.shape[0])
+            error, accuracy, precision = perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
+            test_precisions.append(1 - error/test.shape[0])
+        else:
+            break
+    print(nodes)
+    plt.plot(nodes, train_precisions, label = "Training Set Precision")
+    plt.plot(nodes, test_precisions, label = "Testing Set Precision")
+    plt.xlabel('Cantidad de Nodos')
+    plt.ylabel('Presición')
+    plt.ylim(0.5,1)
+    plt.legend()
+    plt.show()
 
 def run_cross_validation(df, cross_k):
     print("Coming soon")
 
-def make_tree(df, training_set, goal_attribute):
+def make_tree(df, training_set, goal_attribute, examples_u, gain_u, max_height):
     map = {}
     for attr in df.columns:
         map[attr] = []
         for vi in df[attr].unique():
             map[attr].append(vi)
-    return ID3(training_set, goal_attribute, map, 0, None)
+    return ID3(training_set, goal_attribute, map, 0, None, examples_u, gain_u, max_height)
 
-def ID3(df, goal_attribute, attrs_and_values, height, parent_mode):
+def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, gain_u, max_height):
     # STEPS 1-3: Create root
     if df.empty:
         return parent_mode
@@ -35,7 +63,7 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode):
     possible_answers = df[goal_attribute].unique()
     if(len(possible_answers) == 1): # Only one answer
         return mode
-    if len(df.columns) == 1 or df.shape[0] < EXAMPLES_UMBRAL: # No more info, or very few entries
+    if len(df.columns) == 1 or df.shape[0] < examples_u: # No more info, or very few entries
         return mode
 
     # STEP 4: Pick attribute
@@ -46,9 +74,9 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode):
     A = max(gains, key=gains.get)
 
     # TRIMMING
-    if gains[A] < GAIN_UMBRAL:
+    if gains[A] < gain_u:
         return mode
-    if height > HEIGHT_LIMIT:
+    if height > max_height:
         return mode
 
     #STEP 4.4:
@@ -56,7 +84,7 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode):
     for vi in attrs_and_values[A]:
         # Get entries where it takes value vi, and remove A column
         subtree_df = df[df[A] == vi].loc[:, ~df.columns.isin([A])]
-        tree['children'][vi] = ID3(subtree_df, goal_attribute, attrs_and_values, height+1, mode)
+        tree['children'][vi] = ID3(subtree_df, goal_attribute, attrs_and_values, height+1, mode, examples_u, gain_u, max_height)
     return tree
 
 def H(df, goal_attribute):
@@ -195,14 +223,12 @@ def count_tree_nodes(tree):
         sum += count_tree_nodes(tree['children'][child])
     return sum
 
-def run_exercise_1(filepath, cross_validation_k=None, solve_mode=Ex2_Run.SOLVE):
+def run_exercise_1(filepath, cross_validation_k=None, mode=Ex2_Run.SOLVE):
     df = read_csv(filepath, ',')
     df = dicretize_data(df)
     #print_entire_df(df)
 
-    if solve_mode == Ex2_Run.ANALYZE:
-        if Configuration.isVerbose():
-            print_entire_df(df)
+    if mode == Ex2_Run.ANALYZE:
         show_analysis(df)
     else:
         # Shuffle df
@@ -213,7 +239,7 @@ def run_exercise_1(filepath, cross_validation_k=None, solve_mode=Ex2_Run.SOLVE):
             train = df.iloc[0:train_number]
             test = df.iloc[train_number+1:len(df)]
             print("Started building tree at", datetime.datetime.now())
-            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value)
+            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, EXAMPLES_UMBRAL, GAIN_UMBRAL, HEIGHT_LIMIT)
             print("Finished building tree at", datetime.datetime.now())
             export_tree(tree)
             perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)

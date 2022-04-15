@@ -35,6 +35,11 @@ def main():
         if item <= 0 or item > 2:
             print("[ERROR] Invalid value for input, must be between 1 and 2")
             exit(0)
+        if item == 1:
+            if args.mode == Ex2_Run.ANALYZE.value:
+                mode = Ex2_Run.ANALYZE
+            else:
+                mode = Ex2_Run.SOLVE
         if item == 2:
             if args.mode == Ex2_Modes.WEIGHTED.value:
                 mode = Ex2_Modes.WEIGHTED
@@ -55,7 +60,7 @@ def main():
 
     print("[INFO] Running exercise", item, "...")
     if item == 1:
-        run_exercise_1(args.file, cross_validation_k=cross_k, solve_mode=solve_mode)
+        run_exercise_1(args.file, cross_validation_k=cross_k, mode=mode)
     elif item == 2:
         run_exercise_2(args.file, mode=mode, k_neighbors=k_neighbors, cross_validation_k=cross_k, solve_mode=solve_mode)
 
