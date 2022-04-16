@@ -39,9 +39,16 @@ Parámetros:
 - `-m` --> Modo de KNN, simple o con los pesos
 - `-crossk` --> Cantidad de bins para validación cruzada
 - `-sm` --> Solve mode, `solve` para resolver y `analyze` para mostrar analysis y tratar de reemplazar los NaN
+- `-eu` --> Example umbral, default 0
+- `-gu` --> Gain umbral, default 0
+- `-hl` --> Height limit, default 20
+- `-sal` --> Split attribute limit, default None (how many attributes to randomly consider when finding the children)
+- `-ss` --> Sample size in percentage of the training set for RF (default 0.9)
+- `-ns` --> Number samples, how many trees to create in RF (default 10)
 
 Ejemplos de los llamados:
 ```
+python main.py -f input/german_credit.csv -p 3 -m solve -eu 3 -gu 0.01 -hl 4 -sal 6 -ss 0.5 -ns 20
 python main.py -f input/german_credit.csv -p 1 -m solve
 python main.py -f input/german_credit.csv -p 1 -crossk 5 -m solve -v
 python main.py -f input/reviews_sentiment.csv -p 2 -k 5 -v -sm analyze

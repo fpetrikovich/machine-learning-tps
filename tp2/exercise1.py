@@ -1,5 +1,6 @@
 from fileHandling import read_csv, print_entire_df
-from constants import Ex1_Headers, EX1_DIVISION, Ex2_Modes, Ex2_Run, Tennis_Headers
+from tree import export_tree
+from constants import Ex1_Headers, EX1_DIVISION, Ex2_Modes, Ex2_Run
 from confusion import get_accuracy, get_precision
 from plotting import plot_confusion_matrix
 from configurations import Configuration
@@ -8,11 +9,12 @@ import multiprocessing
 import numpy as np
 import datetime
 import math
-from tree import export_tree
+import random
 
 EXAMPLES_UMBRAL = 0
 GAIN_UMBRAL = 0
 HEIGHT_LIMIT = 2
+SPLIT_ATTR_LIMIT = None
 node_counter = 0
 
 def show_analysis(df):
@@ -26,9 +28,10 @@ def show_analysis(df):
     examples_u = EXAMPLES_UMBRAL
     gain_u = GAIN_UMBRAL
     max_height = HEIGHT_LIMIT
+    max_attr = SPLIT_ATTR_LIMIT
     for max_height in range(10):
         print("h=", max_height)
-        tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height)
+        tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height, max_attr)
         amount_of_nodes = count_tree_nodes(tree)
         nodes.append(amount_of_nodes)
         error, accuracy, precision = perform_classification(train, train, tree, Ex1_Headers.CREDITABILITY.value)
@@ -50,7 +53,7 @@ def show_analysis(df):
     # Redo for best one, save the matrix this creates
     best_height = test_precisions.index(max(test_precisions))
     print("Best height was", best_height)
-    tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, best_height)
+    tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, best_height, max_attr)
     export_tree(tree)
     perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value, True)
 
@@ -59,6 +62,7 @@ def show_analysis_umbrals(df):
     examples_u = 0
     gain_u = 0
     max_height = 25
+    max_attr = 20
     values = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 1]
     results = []
     for x in values:
@@ -70,7 +74,7 @@ def show_analysis_umbrals(df):
         for index in range(len(values)):
             gain_u = values[index]
             print(examples_u," < examples,", gain_u, " < gain,", "height < ", max_height)
-            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height)
+            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height, max_attr)
             error, accuracy, precision = perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
             results[index].append(1 - error/test.shape[0])
     plt.boxplot(results, labels=values)
@@ -123,13 +127,13 @@ Parameters:
     - gain_u --> Pre-poda, gain umbral in order to be taken into account
     - max_height --> Pre-poda, max number of levels to be allowed in the tree
 '''
-def make_tree(df, training_set, goal_attribute, examples_u, gain_u, max_height):
+def make_tree(df, training_set, goal_attribute, examples_u, gain_u, max_height, max_split_attributes = None):
     map = {}
     for attr in df.columns:
         map[attr] = list(df[attr].unique())
-    return ID3(training_set, goal_attribute, map, 0, None, examples_u, gain_u, max_height)
+    return ID3(training_set, goal_attribute, map, 0, None, examples_u, gain_u, max_height, max_split_attributes)
 
-def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, gain_u, max_height):
+def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, gain_u, max_height, max_split_attributes = None):
     # STEPS 1-3: Create root
     if df.empty:
         return parent_mode
@@ -146,9 +150,18 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, g
 
     # STEP 4: Pick attribute
     gains = {}
-    for attr in df.columns:
-        if attr != goal_attribute:
+    # Want to consider all attributes when finding the children
+    if max_split_attributes is None or max_split_attributes >= len(df.columns):
+        for attr in df.columns:
+            if attr != goal_attribute:
+                gains[attr] = gain(df, attr, goal_attribute)
+    # Want to consider only certain amount of random attributes
+    else:
+        cols = [x for x in list(df.columns) if x != goal_attribute]
+        random_attrs = random.sample(cols, max_split_attributes)
+        for attr in random_attrs:
             gains[attr] = gain(df, attr, goal_attribute)
+
     # https://stackoverflow.com/a/280156/10672093
     A = max(gains, key=gains.get)
 
@@ -176,7 +189,7 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, g
     for vi in attrs_and_values[A]:
         # Get entries where it takes value vi, and remove A column
         subtree_df = df[df[A] == vi].loc[:, ~df.columns.isin([A])]
-        tree['children'][vi] = ID3(subtree_df, goal_attribute, attrs_and_values, height+1, mode, examples_u, gain_u, max_height)
+        tree['children'][vi] = ID3(subtree_df, goal_attribute, attrs_and_values, height+1, mode, examples_u, gain_u, max_height, max_split_attributes)
     return tree
 
 def H(df, goal_attribute):
@@ -289,7 +302,7 @@ def run_exercise_1(filepath, cross_validation_k=None, mode=Ex2_Run.SOLVE):
             train = df.iloc[0:train_number]
             test = df.iloc[train_number+1:len(df)]
             print("Started building tree at", datetime.datetime.now())
-            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, EXAMPLES_UMBRAL, GAIN_UMBRAL, HEIGHT_LIMIT)
+            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, EXAMPLES_UMBRAL, GAIN_UMBRAL, HEIGHT_LIMIT, SPLIT_ATTR_LIMIT)
             print("Finished building tree at", datetime.datetime.now())
             export_tree(tree)
             perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
