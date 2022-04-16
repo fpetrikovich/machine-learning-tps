@@ -55,5 +55,5 @@ class Ex2_Title_Sentiment(Enum):
     NEGATIVE = 'negative'
 
 # Number of slots divided
-EX1_DIVISION = 10
+EX1_DIVISION = 12
 EX2_DIVISION = 10

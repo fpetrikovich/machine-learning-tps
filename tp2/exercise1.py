@@ -4,13 +4,14 @@ from confusion import get_accuracy, get_precision
 from plotting import plot_confusion_matrix
 from configurations import Configuration
 import matplotlib.pyplot as plt
+import multiprocessing
 import numpy as np
 import datetime
 import math
 
-EXAMPLES_UMBRAL = 5
-GAIN_UMBRAL = 0.01
-HEIGHT_LIMIT = 3
+EXAMPLES_UMBRAL = 0
+GAIN_UMBRAL = 0
+HEIGHT_LIMIT = 2
 node_counter = 0
 
 def show_analysis(df):
@@ -21,31 +22,95 @@ def show_analysis(df):
     nodes = []
     train_precisions = []
     test_precisions = []
-    examples_u = 0
-    gain_u = 0
-    for max_height in range(25):
-        print(examples_u," < examples,", gain_u, " < gain,", "height < ", max_height)
+    examples_u = EXAMPLES_UMBRAL
+    gain_u = GAIN_UMBRAL
+    max_height = HEIGHT_LIMIT
+    for max_height in range(10):
+        print("h=", max_height)
         tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height)
         amount_of_nodes = count_tree_nodes(tree)
-        if len(nodes) == 0 or amount_of_nodes != nodes[-1]:
-            nodes.append(count_tree_nodes(tree))
-            error, accuracy, precision = perform_classification(train, train, tree, Ex1_Headers.CREDITABILITY.value)
-            train_precisions.append(1 - error/train.shape[0])
-            error, accuracy, precision = perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
-            test_precisions.append(1 - error/test.shape[0])
-        else:
-            break
-    print(nodes)
-    plt.plot(nodes, train_precisions, label = "Training Set Precision")
-    plt.plot(nodes, test_precisions, label = "Testing Set Precision")
+        nodes.append(amount_of_nodes)
+        error, accuracy, precision = perform_classification(train, train, tree, Ex1_Headers.CREDITABILITY.value)
+        train_precisions.append(1 - error/train.shape[0])
+        error, accuracy, precision = perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
+        test_precisions.append(1 - error/test.shape[0])
+    plt.plot(nodes, train_precisions, label = "Training Set Precision", marker='o')
+    plt.plot(nodes, test_precisions, label = "Testing Set Precision", marker='o')
+    for i in range(len(test_precisions)):
+        x = nodes[i]
+        y = test_precisions[i]
+        if i<2 or (i>1 and x != nodes[i-1]):
+            plt.text(x * (1 + 0.01), y * (1 + 0.01), "h="+str(i))
     plt.xlabel('Cantidad de Nodos')
     plt.ylabel('Presición')
-    plt.ylim(0.5,1)
+    plt.ylim(0.5,1.05)
     plt.legend()
     plt.show()
+    # Redo for best one, save the matrix this creates
+    best_height = test_precisions.index(max(test_precisions))
+    print("Best height was", best_height)
+    tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, best_height)
+    export_tree(tree)
+    perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value, True)
+
+def show_analysis_umbrals(df):
+    train_number = int(len(df)/EX1_DIVISION) * (EX1_DIVISION - 1)
+    examples_u = 0
+    gain_u = 0
+    max_height = 25
+    values = [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 1]
+    results = []
+    for x in values:
+        results.append([])
+    for i in range(10):
+        df = df.sample(frac=1)
+        train = df.iloc[0:train_number]
+        test = df.iloc[train_number+1:len(df)]
+        for index in range(len(values)):
+            gain_u = values[index]
+            print(examples_u," < examples,", gain_u, " < gain,", "height < ", max_height)
+            tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, examples_u, gain_u, max_height)
+            error, accuracy, precision = perform_classification(train, test, tree, Ex1_Headers.CREDITABILITY.value)
+            results[index].append(1 - error/test.shape[0])
+    plt.boxplot(results, labels=values)
+    plt.xlabel('Umbral de Ganancia')
+    plt.ylabel('Presición')
+    plt.show()
+
+def run_cross_validation_iteration(i, elements_per_bin, df, goal_attribute, results):
+    print('Running cross validation with bin number', i)
+    test = df.iloc[i*elements_per_bin:(i+1)*elements_per_bin]
+    train = df[~df.index.isin(list(test.index.values))]
+    tree = make_tree(df, train, Ex1_Headers.CREDITABILITY.value, EXAMPLES_UMBRAL, GAIN_UMBRAL, HEIGHT_LIMIT)
+    error, accuracy, precision = perform_classification(train, test, tree, goal_attribute)
+    results[i] = [error, accuracy, precision]
 
 def run_cross_validation(df, cross_k):
-    print("Coming soon")
+    # Calculate number of elements per bin
+    elements_per_bin = int(len(df)/cross_k)
+    print("Running cross validation using", cross_k,
+          "bins with", elements_per_bin, "elements per bin")
+    # Iterate and run method
+    manager = multiprocessing.Manager()
+    # Need this dictionary due to non-shared memory issues
+    return_dict = manager.dict()
+    jobs = [0] * cross_k
+    # Create multiple jobs
+    for i in range(cross_k):
+        jobs[i] = multiprocessing.Process(target=run_cross_validation_iteration, args=(i, elements_per_bin, df, Ex1_Headers.CREDITABILITY.value, return_dict))
+        jobs[i].start()
+    # Join the jobs for the results
+    for i in range(len(jobs)):
+        jobs[i].join()
+    # Calculate some metrics
+    values = return_dict.values()
+    errors = np.array([x[0] for x in values])
+    accuracies = np.array([x[1] for x in values])
+    print('---------------------------')
+    print('---------------------------')
+    print('---------------------------')
+    print('Error average -->', np.average(errors, axis=0)/elements_per_bin, '\nstd -->', np.std(errors, axis=0))
+    print('Accuracy average -->', np.average(accuracies, axis=0), '\nstd -->', np.std(accuracies, axis=0))
 
 def make_tree(df, training_set, goal_attribute, examples_u, gain_u, max_height):
     map = {}
@@ -183,7 +248,7 @@ def dicretize_data(df):
     df = df.drop(columns=[Ex1_Headers.CREDIT_DURATION.value]).rename(columns={new_header: Ex1_Headers.CREDIT_DURATION.value})
     return df
 
-def perform_classification(train, test, tree, goal_attribute):
+def perform_classification(train, test, tree, goal_attribute, show_matrix=False):
     total_train_elements, total_test_elements = train.shape[0], test.shape[0]
     possible_answers = train[goal_attribute].unique()
 
@@ -203,7 +268,7 @@ def perform_classification(train, test, tree, goal_attribute):
     print('Error --> ', error, '\nAccuracy --> ',
           accuracy, '\nPrecision --> ', precision)
     print('---------------------------')
-    if Configuration.isVerbose():
+    if Configuration.isVerbose() or show_matrix:
         plot_confusion_matrix(confusion, ["REJECTED", "APPROVED"])
     return error, accuracy, precision
 
