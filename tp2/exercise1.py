@@ -8,6 +8,7 @@ import multiprocessing
 import numpy as np
 import datetime
 import math
+from tree import export_tree
 
 EXAMPLES_UMBRAL = 0
 GAIN_UMBRAL = 0
@@ -112,22 +113,32 @@ def run_cross_validation(df, cross_k):
     print('Error average -->', np.average(errors, axis=0)/elements_per_bin, '\nstd -->', np.std(errors, axis=0))
     print('Accuracy average -->', np.average(accuracies, axis=0), '\nstd -->', np.std(accuracies, axis=0))
 
+'''
+This function takes care of building a decision tree
+Parameters:
+    - df --> Dataframe
+    - training_set --> Dataframe with only the training set records
+    - goal_attribute --> Column name of the attribute to be decided
+    - examples_u --> Pre-poda, number of examples to be required in order to make a decision
+    - gain_u --> Pre-poda, gain umbral in order to be taken into account
+    - max_height --> Pre-poda, max number of levels to be allowed in the tree
+'''
 def make_tree(df, training_set, goal_attribute, examples_u, gain_u, max_height):
     map = {}
     for attr in df.columns:
-        map[attr] = []
-        for vi in df[attr].unique():
-            map[attr].append(vi)
+        map[attr] = list(df[attr].unique())
     return ID3(training_set, goal_attribute, map, 0, None, examples_u, gain_u, max_height)
 
 def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, gain_u, max_height):
     # STEPS 1-3: Create root
     if df.empty:
         return parent_mode
-    mode = df[goal_attribute].mode()[0]
-    possible_answers = df[goal_attribute].unique()
+    goal_df = df[goal_attribute] # Temporarily store the filtered DF to avoid extra instances
+    mode = goal_df.mode()[0]
+    possible_answers = goal_df.unique()
     if(len(possible_answers) == 1): # Only one answer
         return mode
+    # No more information as in you run out of columns to analyze
     if len(df.columns) == 1 or df.shape[0] < examples_u: # No more info, or very few entries
         return mode
 
@@ -136,6 +147,7 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, g
     for attr in df.columns:
         if attr != goal_attribute:
             gains[attr] = gain(df, attr, goal_attribute)
+    # https://stackoverflow.com/a/280156/10672093
     A = max(gains, key=gains.get)
 
     # TRIMMING
@@ -144,7 +156,22 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, g
     if height > max_height:
         return mode
 
-    #STEP 4.4:
+    # STEP 4.4:
+    '''
+    Tree is built recursively using the following structure:
+    {
+        attribute: ATTR_NAME,
+        children: {
+            value_for_attr_1: {
+                ... repeat
+            },
+            value_for_attr_2: {
+                ... repeat
+            },
+            ...
+        }
+    }
+    '''
     tree = {'attribute': A, 'children': {}}
     for vi in attrs_and_values[A]:
         # Get entries where it takes value vi, and remove A column
@@ -165,53 +192,11 @@ def HSv(df, goal_attribute, filter_attribute, filter_value):
 
 def gain(df, filter_attribute, goal_attribute):
     sum = 0
-    relative_frequencies = df[filter_attribute].value_counts(normalize=True)
-    for v in df[filter_attribute].unique():
+    filtered_df = df[filter_attribute] # Prefilter DF to avoid extra instances
+    relative_frequencies = filtered_df.value_counts(normalize=True)
+    for v in filtered_df.unique():
         sum += relative_frequencies[v] * HSv(df, goal_attribute, filter_attribute, v)
     return H(df, goal_attribute) - sum
-
-def export_tree(tree):
-    global node_counter
-    node_counter = 0
-    dot_file = open("tree.dot", "w")
-    dot_file.write("digraph {\nsize = \"10,20!\";\nratio = \"fill\";\nrankdir=\"LR\";overlap=false;\n")
-    draw_tree_dot(tree, dot_file)
-    dot_file.write("}")
-    dot_file.close()
-
-def draw_tree_text(tree, height):
-    if type(tree) is dict:
-        for i in range(height):
-            print("| ", end="")
-        print(str(tree['attribute']).upper())
-        for child in tree['children'].keys():
-            for i in range(height+1):
-                print("| ", end="")
-            print(child)
-            draw_tree_rec(tree['children'][child], height+2)
-        return node_name
-    else:
-        for i in range(height-1):
-            print("| ", end="")
-        print("  ***",str(tree).upper(),"***")
-
-def draw_tree_dot(tree, dot_file):
-    global node_counter
-    node_name = "n"+str(node_counter)
-    if type(tree) is dict:
-        dot_file.write("\t"+node_name +" [ fontsize=30 shape=\"box\" label=\"" +str(tree['attribute']).upper() +"\" ]\n")
-        node_counter += 1
-        for child in sorted(tree['children'].keys()):
-            child_node_name = draw_tree_dot(tree['children'][child], dot_file)
-            dot_file.write("\t"+node_name +" -> " +child_node_name +" [ fontsize=20 xlabel=\"" +str(child) +"\" ]\n")
-    else:
-        if(str(tree) == '0'):
-            color_property = "style=filled fillcolor=\"darksalmon\""
-        else:
-            color_property = "style=filled fillcolor=\"darkolivegreen1\""
-        dot_file.write("\t"+node_name +" [ " +color_property +"label=\"" +str(tree).upper() +"\" ]\n")
-        node_counter += 1
-    return node_name
 
 def dicretize_data(df):
     # CREDIT
@@ -291,7 +276,7 @@ def count_tree_nodes(tree):
 def run_exercise_1(filepath, cross_validation_k=None, mode=Ex2_Run.SOLVE):
     df = read_csv(filepath, ',')
     df = dicretize_data(df)
-    #print_entire_df(df)
+    # print_entire_df(df)
 
     if mode == Ex2_Run.ANALYZE:
         show_analysis(df)

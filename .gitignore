@@ -10,3 +10,7 @@ tp2/__pycache__/
 .DS_Store
 
 tp2/scripts/results.txt
+
+tp2/tree.dot
+
+tp2/tree.pdf
