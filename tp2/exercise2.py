@@ -148,7 +148,7 @@ def perform_classification(train, test, k_neighbors, mode):
         # Map to classes
         # It maps to tuples like (class, weight), where weight is 1 or 1/distance**2 depending on the mode
         neighbors = list(map(
-            lambda x: (train_label[Ex2_Headers.STAR_RATING.value].iloc[x[1]], 1 if mode == Ex2_Modes.SIMPLE else 1/((x[0] if x[0] > 0 else 1)**2)), sorted_distances_with_index))
+            lambda x: (train_label[Ex2_Headers.STAR_RATING.value].iloc[x[1]], 1 if mode == Ex2_Modes.SIMPLE else 1/((x[0] if x[0] > 0 else 0.00001)**2)), sorted_distances_with_index))
         # Keep just the classes of those neighbors
         classification = get_neighbors(neighbors, k_neighbors, train.shape[0])
         # Build confusion matrix

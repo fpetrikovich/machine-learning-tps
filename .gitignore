@@ -14,3 +14,5 @@ tp2/scripts/results.txt
 tp2/tree.dot
 
 tp2/tree.pdf
+
+*.pdf
