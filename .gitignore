@@ -16,3 +16,5 @@ tp2/tree.dot
 tp2/tree.pdf
 
 *.pdf
+
+*.dot
