@@ -1,11 +1,15 @@
-def export_tree(tree):
+def export_tree(tree, filename = "tree.dot"):
     global node_counter
     node_counter = 0
-    dot_file = open("tree.dot", "w")
+    dot_file = open(filename, "w")
     dot_file.write("digraph {\nsize = \"10,20!\";\nratio = \"fill\";\nrankdir=\"LR\";overlap=false;\n")
     draw_tree_dot(tree, dot_file)
     dot_file.write("}")
     dot_file.close()
+
+def export_trees(trees):
+    for i in range(0, len(trees)):
+        export_tree(trees[i], str(i) + "_tree.dot")
 
 def draw_tree_text(tree, height):
     if type(tree) is dict:

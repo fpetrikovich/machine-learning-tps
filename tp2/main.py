@@ -1,7 +1,7 @@
 import argparse
 
 from exercise1 import run_exercise_1
-from exercise1RF import run_exercise_1_ft
+from exercise1RF import run_exercise_1_rf
 from exercise2 import run_exercise_2
 from configurations import Configuration
 from constants import Ex2_Modes, Ex2_Run
@@ -84,7 +84,7 @@ def main():
     elif item == 2:
         run_exercise_2(args.file, mode=mode, k_neighbors=k_neighbors, cross_validation_k=cross_k, solve_mode=solve_mode)
     else:
-        run_exercise_1_ft(args.file, cross_validation_k=cross_k, mode=mode)
+        run_exercise_1_rf(args.file, cross_validation_k=cross_k, mode=mode)
 
 if __name__ == '__main__':
     main()
