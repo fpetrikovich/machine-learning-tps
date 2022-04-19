@@ -11,9 +11,9 @@ import datetime
 import math
 import random
 
-EXAMPLES_UMBRAL = 0
-GAIN_UMBRAL = 0
-HEIGHT_LIMIT = 2
+EXAMPLES_UMBRAL = 30
+GAIN_UMBRAL = 0.06
+HEIGHT_LIMIT = 3
 SPLIT_ATTR_LIMIT = None
 node_counter = 0
 
