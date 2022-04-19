@@ -145,7 +145,7 @@ def ID3(df, goal_attribute, attrs_and_values, height, parent_mode, examples_u, g
     # No more information as in you run out of columns to analyze
     if len(df.columns) == 1 or df.shape[0] < examples_u: # No more info, or very few entries
         return mode
-    if height > max_height:
+    if height >= max_height:
         return mode
 
     # STEP 4: Pick attribute
