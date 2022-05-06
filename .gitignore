@@ -19,4 +19,10 @@ tp2/tree.pdf
 
 *.dot
 
+*.pyc
+
 tp2/.idea/
+
+tp3/__pycache__/
+
+tp3/.idea/
