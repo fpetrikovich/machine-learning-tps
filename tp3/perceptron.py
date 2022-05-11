@@ -5,7 +5,7 @@ from datetime import datetime
 
 class SimplePerceptron:
 
-    def __init__(self, alpha=0.01, iterations=100, adaptive=False):
+    def __init__(self, alpha=0.01, iterations=1000, adaptive=False):
         self.alpha = alpha
         self.initial_alpha = alpha
         self.iterations = iterations
@@ -71,16 +71,13 @@ class SimplePerceptron:
         error_per_epoch = []
         for epoch in range(self.iterations):
             if error_this_epoch > 0:
-                total_error = 0
-                for i in range(len(data)):
-                    sumatoria = self.get_sum(data[i][:-1], weights)
-                    activation = self.get_activation(sumatoria)
-                    error = data[i][-1] - activation
-                    fixed_diff = self.alpha * error
-                    for j in range(len(weights)):
-                        weights[j] = weights[j] + (fixed_diff * data[i][j])
-                    total_error += error**2
-                error_this_epoch = self.error_function(total_error)
+                i = np.random.randint(0,len(input))
+                p = data[i]
+                sumatoria = self.get_sum(data[i][:-1], weights)
+                error = data[i][-1] - self.get_activation(sumatoria)
+                for j in range(len(weights)):
+                    weights[j] = weights[j] + (self.alpha * error * data[i][j])
+                error_this_epoch = self.test_classifier(input, weights)
                 error_per_epoch.append(error_this_epoch)
                 if self.adaptive and epoch % 10 == 0:
                     self.adjust_learning_rate(error_per_epoch)
@@ -88,6 +85,7 @@ class SimplePerceptron:
                     error_min = error_this_epoch
                     w_min = weights
             else:
+                print("Perceptron reached solution with no error!")
                 break
         w_min = w_min[:,0]
         plane_margin = self.calculate_margin(input, w_min[1], w_min[2], w_min[0])
@@ -137,17 +135,12 @@ class SimplePerceptron:
                                 best_vector = [c,a,b]
                                 best_points = np.array([single_point, dual_p1, dual_p2])
                                 best_dist_y = dist_y
-        return best_vector, best_margin, best_points, best_dist_y
+        return best_vector, best_margin, best_dist_y
 
-    def test_perceptron(self, test_data, weights):
-        print('Testing perceptron...')
-        element_count = 0
-        print('+-------------------+-------------------+')
-        print('|   Desired output  |   Perceptron out  |')
-        print('+-------------------+-------------------+')
-        for row in test_data:
-            sumatoria = self.get_sum(row[:-1], weights) # dame toda la fila menos el ultimo elemento => x_i => x0, x1, x2, ...
-            perceptron_output = self.get_activation(sumatoria)
-            element_count += 1
-            print('|{}|{}|'.format(row[-1], perceptron_output))
-        print('Analysis finished')
+    def test_classifier(self, test_data, w):
+        error = 0.0
+        for p in test_data:
+            sumatoria = w[0] + w[1]*p[0] + w[2]*p[1]
+            if p[-1]*(sumatoria) < 0:
+                error += 1
+        return error/len(test_data)
