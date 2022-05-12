@@ -1,6 +1,6 @@
 import argparse
 from exercise1 import run_exercise_1
-#from exercise2 import run_exercise_2
+from exercise2 import run_exercise_2
 from config.configurations import Configuration
 from config.parameters import Parameters
 
@@ -9,7 +9,7 @@ def main():
     parser = argparse.ArgumentParser(description="Machine Learning TP3")
 
     # Add arguments
-    #parser.add_argument('-f', dest='file', required=True)   # Archivo para usar
+    parser.add_argument('-f', dest='folder', required=False)    # Path to folder with images
     parser.add_argument('-p', dest='point', required=True)
     parser.add_argument('-i', dest='iterations', required=False)
     parser.add_argument('-n', dest='n', required=False)
@@ -46,8 +46,10 @@ def main():
     if item == 1:
         run_exercise_1(n, seed, iterations, m, C)
     elif item == 2:
-        print("HOLA")
-        #run_exercise_2(args.file)
+        if args.folder == None:
+            print('[ERROR] Missing path folder with images')
+            return
+        run_exercise_2(args.folder)
 
 if __name__ == '__main__':
     main()

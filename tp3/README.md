@@ -1,4 +1,4 @@
-# TP2
+# TP3
 
 ## Instalar
 
@@ -37,4 +37,5 @@ Parámetros:
 Ejemplos de los llamados:
 ```
 python main.py -p 1 -n 25 -s 5 -i 100 -m 4 -c 100
+python main.py -p 2 -f pics/ -v -vv
 ```
