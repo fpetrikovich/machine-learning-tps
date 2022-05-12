@@ -22,12 +22,6 @@ class SimplePerceptron:
             elif not all(booleans):
                 self.alpha -= 0.01 * self.alpha
 
-    def error_function(self, sqr_errors_sum):
-        if isinstance(sqr_errors_sum, list):
-            return (0.5 * (sqr_errors_sum))[0]
-        else:
-            return 0.5 * (sqr_errors_sum)
-
     def step(self, x): # funcion de activacion escalon
         if x > 0.0: return 1.0
         if x < 0.0: return -1.0
@@ -73,11 +67,10 @@ class SimplePerceptron:
             if error_this_epoch > 0:
                 i = np.random.randint(0,len(input))
                 p = data[i]
-                sumatoria = self.get_sum(data[i][:-1], weights)
-                error = data[i][-1] - self.get_activation(sumatoria)
+                error = p[-1] - self.make_prediction(p, weights)
                 for j in range(len(weights)):
-                    weights[j] = weights[j] + (self.alpha * error * data[i][j])
-                error_this_epoch = self.test_classifier(input, weights)
+                    weights[j] = weights[j] + (self.alpha * error * p[j])
+                error_this_epoch = self.test_perceptron(data, weights)
                 error_per_epoch.append(error_this_epoch)
                 if self.adaptive and epoch % 10 == 0:
                     self.adjust_learning_rate(error_per_epoch)
@@ -137,10 +130,21 @@ class SimplePerceptron:
                                 best_dist_y = dist_y
         return best_vector, best_margin, best_dist_y
 
+    def make_prediction(self, p, w):
+        return self.get_activation(self.get_sum(p[:-1], w))
+
+    def test_perceptron(self, train_data, w):
+        error = 0.0
+        for p in train_data:
+            error += abs(p[-1] - self.make_prediction(p,w))
+        return error
+
     def test_classifier(self, test_data, w):
         error = 0.0
+        predictions = []
         for p in test_data:
             sumatoria = w[0] + w[1]*p[0] + w[2]*p[1]
-            if p[-1]*(sumatoria) < 0:
+            predictions.append([p[2], np.sign(sumatoria)])
+            if np.sign(sumatoria) != np.sign(p[2]):
                 error += 1
         return error/len(test_data)
