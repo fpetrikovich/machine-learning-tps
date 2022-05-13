@@ -13,6 +13,7 @@ def main():
     parser.add_argument('-p', dest='point', required=True)
     parser.add_argument('-i', dest='iterations', required=False)
     parser.add_argument('-n', dest='n', required=False)
+    parser.add_argument('-mc', dest='misclassifications', required=False)
     parser.add_argument('-m', dest='m', required=False)
     parser.add_argument('-s', dest='seed', required=False)
     parser.add_argument('-c', dest='C', required=False)
@@ -23,10 +24,13 @@ def main():
     args = parser.parse_args()
     n=25
     seed = None
-    iterations = 100
+    iterations = 5000
+    misclassifications = 0
     m = 4
-    C = 1
+    C = 10
     item = int(args.point)
+    if args.misclassifications:
+        misclassifications = int(args.misclassifications)
     if args.n:
         n = int(args.n)
     if args.seed:
@@ -36,7 +40,7 @@ def main():
     if args.m:
         m = int(args.m)
     if args.C:
-        C = int(args.C)
+        C = float(args.C)
 
     # Store configuration
     Configuration.setVerbose(args.verbose)
@@ -44,7 +48,7 @@ def main():
 
     print("[INFO] Running exercise", item, "...")
     if item == 1:
-        run_exercise_1(n, seed, iterations, m, C)
+        run_exercise_1(n, misclassifications, seed, iterations, m, C)
     elif item == 2:
         if args.folder == None:
             print('[ERROR] Missing path folder with images')

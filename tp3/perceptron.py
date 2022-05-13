@@ -78,7 +78,6 @@ class SimplePerceptron:
                     error_min = error_this_epoch
                     w_min = weights
             else:
-                print("Perceptron reached solution with no error!")
                 break
         w_min = w_min[:,0]
         plane_margin = self.calculate_margin(input, w_min[1], w_min[2], w_min[0])
