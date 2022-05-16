@@ -60,6 +60,26 @@ def load_test_images(pic_folder_path):
     return cow
 
 ####################################################################################
+#################################### ANALYSIS ######################################
+####################################################################################
+
+def analyze_image(img):
+    print('Average color -->', np.mean(img, axis=(0, 1)))
+    print('St. dev color -->', np.std(img, axis=(0, 1)))
+
+def perform_image_analysis(cielo, pasto, vaca):
+    print('---------------------------')
+    print('IMAGE ANALYSIS')
+    print('CIELO')
+    analyze_image(cielo)
+    print('PASTO')
+    analyze_image(pasto)
+    print('VACA')
+    analyze_image(vaca)
+    print('---------------------------')
+
+
+####################################################################################
 ############################### DATASET OPERATIONS #################################
 ####################################################################################
 
@@ -129,10 +149,16 @@ def predict_with_model(clf, test_dataset, test_labels):
     # Calculate metrics
     if Configuration.isVeryVerbose():
         print('[INFO] Computing metrics -', datetime.now())
+    hits = np.array([0.0] * 3)
+    for i in range(test_labels.shape[0]):
+        if test_labels[i] == test_predictions[i]:
+            hits[test_labels[i]] += 1
+    # Iterate the classes
+    for i in range(0, 3):
+        hits[i] = float(hits[i]) / float(test_labels[test_labels == i].shape[0])
     test_diff = np.abs(test_predictions - test_labels)
     error_abs = test_diff[test_diff > 0].shape[0]
-    accuracy = 1 - (error_abs / test_predictions.shape[0])
-    return test_predictions, error_abs, accuracy
+    return test_predictions, error_abs, hits
 
 
 ####################################################################################
@@ -154,13 +180,13 @@ def run_test(classifier, test_image):
     for row in range(rows):
         for col in range(cols):
             # Cielo
-            if predictions[pixel_number] == 1:
+            if predictions[pixel_number] == 0:
                 test_image[row, col] = np.array([0, 0, 255])
             # Pasto
-            elif predictions[pixel_number] == 2:
+            elif predictions[pixel_number] == 1:
                 test_image[row, col] = np.array([0, 255, 0])
             # Vaca
-            elif predictions[pixel_number] == 3:
+            elif predictions[pixel_number] == 2:
                 test_image[row, col] = np.array([255, 0, 0])
             pixel_number += 1
     if Configuration.isVeryVerbose():
@@ -225,48 +251,51 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
         svm_c (int, optional): _description_. Defaults to 1.
         svm_kernel (str, optional): _description_. Defaults to 'linear'.
         cross_k (_type_, optional): _description_. Defaults to None.
-        mode (str, optional): Execution mode, can be 'dataset' for analysis of the dataset and division or 'solve' for solving the excercise. Is used in combination of the cross_k paratemer for cross validation. Defaults to 'dataset'.
+        mode (str, optional): Execution mode, can be 'dataset' for analysis of the dataset and division or 'solve' for solving the excercise. The 'analyze' mode is used to gather analytics. Is used in combination of the cross_k paratemer for cross validation. Defaults to 'dataset'.
     """
     # Load images
     if Configuration.isVeryVerbose():
         print('[INFO] Loading images -', datetime.now())
     train_cielo, train_pasto, train_vaca = load_train_images(pic_folder_path)
     test_cow = load_test_images(pic_folder_path)
-    # Build the dataset and shuffle it
-    if Configuration.isVeryVerbose():
-        print('[INFO] Building dataset -', datetime.now())
-    dataset, labels = build_image_dataset(
-        [train_cielo, train_pasto, train_vaca], [1, 2, 3])
-    dataset, labels = shuffle_dataset(dataset, labels)
-    if mode == 'dataset':
-        if cross_k == None:
-            a = 2
-        else:
-            run_cross_validation(dataset, labels, cross_k, svm_kernel, svm_c)
-    elif mode == 'solve':
-        if cross_k == None:
-            # Run the full prediction flow
-            # Split the dataset in train/test
-            if Configuration.isVeryVerbose():
-                print('[INFO] Splitting dataset -', datetime.now())
-            train_dataset, train_labels, test_dataset, test_labels = split_dataset(
-                dataset, labels, percentage=BASE_SPLIT_PERCENTAGE)
-            # Apply SVM
-            if Configuration.isVeryVerbose():
-                print('[INFO] Creating SVM model -', datetime.now())
-            svc = SVC(kernel=svm_kernel, C=svm_c)
-            clf = svc.fit(train_dataset, train_labels)
-            if Configuration.isVeryVerbose():
-                print('[INFO] Making predictions -', datetime.now())
-            test_predictions = clf.predict(test_dataset)
-            # Calculate metrics
-            if Configuration.isVeryVerbose():
-                print('[INFO] Computing metrics -', datetime.now())
-            test_diff = np.abs(test_predictions - test_labels)
-            print(1 - (test_diff[test_diff > 0].shape[0] / test_predictions.shape[0]))
-            # Running the real test
-            if Configuration.isVeryVerbose():
-                print('[INFO] Running test -', datetime.now())
-            run_test(clf, np.copy(test_cow))
-        else:
-            a = 2
+    if mode == 'analyze':
+        perform_image_analysis(train_cielo, train_pasto, train_vaca)
+    else:
+        # Build the dataset and shuffle it
+        if Configuration.isVeryVerbose():
+            print('[INFO] Building dataset -', datetime.now())
+        dataset, labels = build_image_dataset(
+            [train_cielo, train_pasto, train_vaca], [0, 1, 2])
+        dataset, labels = shuffle_dataset(dataset, labels)
+        if mode == 'dataset':
+            if cross_k == None:
+                a = 2
+            else:
+                run_cross_validation(dataset, labels, cross_k, svm_kernel, svm_c)
+        elif mode == 'solve':
+            if cross_k == None:
+                # Run the full prediction flow
+                # Split the dataset in train/test
+                if Configuration.isVeryVerbose():
+                    print('[INFO] Splitting dataset -', datetime.now())
+                train_dataset, train_labels, test_dataset, test_labels = split_dataset(
+                    dataset, labels, percentage=BASE_SPLIT_PERCENTAGE)
+                # Apply SVM
+                if Configuration.isVeryVerbose():
+                    print('[INFO] Creating SVM model -', datetime.now())
+                svc = SVC(kernel=svm_kernel, C=svm_c)
+                clf = svc.fit(train_dataset, train_labels)
+                if Configuration.isVeryVerbose():
+                    print('[INFO] Making predictions -', datetime.now())
+                test_predictions = clf.predict(test_dataset)
+                # Calculate metrics
+                if Configuration.isVeryVerbose():
+                    print('[INFO] Computing metrics -', datetime.now())
+                test_diff = np.abs(test_predictions - test_labels)
+                print(1 - (test_diff[test_diff > 0].shape[0] / test_predictions.shape[0]))
+                # Running the real test
+                if Configuration.isVeryVerbose():
+                    print('[INFO] Running test -', datetime.now())
+                run_test(clf, np.copy(test_cow))
+            else:
+                a = 2
