@@ -17,6 +17,9 @@ def main():
     parser.add_argument('-m', dest='m', required=False)
     parser.add_argument('-s', dest='seed', required=False)
     parser.add_argument('-c', dest='C', required=False)
+    parser.add_argument('-ker', dest='kernel', required=False)
+    parser.add_argument('-k', dest='cross_k', required=False)
+    parser.add_argument('-mode', dest='mode', required=False)
 
     # The following are for Python 3.8 and under
     parser.add_argument('-v', dest='verbose', action='store_true')  # Verbose, print or not
@@ -26,6 +29,7 @@ def main():
     seed = None
     iterations = 5000
     misclassifications = 0
+    kernel = None
     m = 4
     C = 10
     item = int(args.point)
@@ -41,6 +45,12 @@ def main():
         m = int(args.m)
     if args.C:
         C = float(args.C)
+    if args.kernel:
+        kernel = args.kernel
+    # Cross validation k
+    cross_k = None
+    if args.cross_k:
+        cross_k = int(args.cross_k)
 
     # Store configuration
     Configuration.setVerbose(args.verbose)
@@ -53,7 +63,7 @@ def main():
         if args.folder == None:
             print('[ERROR] Missing path folder with images')
             return
-        run_exercise_2(args.folder)
+        run_exercise_2(args.folder, svm_c=C, svm_kernel=kernel, cross_k=cross_k, mode=args.mode)
 
 if __name__ == '__main__':
     main()
