@@ -7,6 +7,7 @@ import os
 import cv2
 import numpy as np
 import multiprocessing
+from utils.plotting import save_confusion_matrix
 
 # Test
 COW = 'cow.jpg'
@@ -84,6 +85,11 @@ def perform_image_analysis(cielo, pasto, vaca):
     analyze_image(vaca)
     print('---------------------------')
 
+def build_confusion_matrix(predictions, test_labels, svm_kernel, svm_c):
+    confusion = np.zeros((3,3))
+    for i in range(test_labels.shape[0]):
+        confusion[test_labels[i], predictions[i]] += 1
+    save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'], f'./results/{svm_kernel}_{svm_c}_{int(datetime.timestamp(datetime.now()))}.png')
 
 ####################################################################################
 ############################### DATASET OPERATIONS #################################
@@ -209,7 +215,9 @@ def run_cross_validation_iteration(i, elements_per_bin, dataset, labels, svm_ker
     train_dataset, train_labels, test_dataset, test_labels = split_dataset_bins(dataset, labels, i, elements_per_bin)
     # Perform the training & classification
     clf, _ = create_and_train_model(train_dataset, train_labels, svm_kernel, svm_c)
-    _, error_abs, accuracy = predict_with_model(clf, test_dataset, test_labels)
+    predictions, error_abs, accuracy = predict_with_model(clf, test_dataset, test_labels)
+    # Build the confusion matrix and store it
+    build_confusion_matrix(predictions, test_labels, svm_kernel, svm_c)
     results[i] = [error_abs, accuracy]
 
 
