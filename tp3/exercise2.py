@@ -10,6 +10,9 @@ import multiprocessing
 
 # Test
 COW = 'cow.jpg'
+COW2 = 'test--cow-2.jpeg'
+COW3 = 'test--cow-3.jpeg'
+COW4 = 'test--cow-4.jpeg'
 # Train
 CIELO = 'cielo.jpg'
 PASTO = 'pasto.jpg'
@@ -57,7 +60,10 @@ def load_train_images(pic_folder_path):
 
 def load_test_images(pic_folder_path):
     cow = load_image(os.path.join(BASE_PATH, pic_folder_path, COW))
-    return cow
+    cow2 = load_image(os.path.join(BASE_PATH, pic_folder_path, COW2))
+    cow3 = load_image(os.path.join(BASE_PATH, pic_folder_path, COW3))
+    cow4 = load_image(os.path.join(BASE_PATH, pic_folder_path, COW4))
+    return [cow, cow2, cow3, cow4]
 
 ####################################################################################
 #################################### ANALYSIS ######################################
@@ -257,7 +263,7 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
     if Configuration.isVeryVerbose():
         print('[INFO] Loading images -', datetime.now())
     train_cielo, train_pasto, train_vaca = load_train_images(pic_folder_path)
-    test_cow = load_test_images(pic_folder_path)
+    test_cows = load_test_images(pic_folder_path)
     if mode == 'analyze':
         perform_image_analysis(train_cielo, train_pasto, train_vaca)
     else:
@@ -294,8 +300,9 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
                 test_diff = np.abs(test_predictions - test_labels)
                 print(1 - (test_diff[test_diff > 0].shape[0] / test_predictions.shape[0]))
                 # Running the real test
-                if Configuration.isVeryVerbose():
-                    print('[INFO] Running test -', datetime.now())
-                run_test(clf, np.copy(test_cow))
+                for test_cow in test_cows:
+                    if Configuration.isVeryVerbose():
+                        print('[INFO] Running test - COW -', datetime.now())
+                    run_test(clf, np.copy(test_cow))
             else:
                 a = 2
