@@ -1,5 +1,3 @@
-from utils.confusion import get_accuracy, get_precision
-from utils.plotting import plot_confusion_matrix
 from config.configurations import Configuration
 from datetime import datetime
 from sklearn.svm import SVC
@@ -8,6 +6,7 @@ import cv2
 import numpy as np
 import multiprocessing
 from utils.plotting import save_confusion_matrix
+import pandas as pd
 
 # Test
 COW = 'cow.jpg'
@@ -24,6 +23,16 @@ BASE_PATH = '.'
 
 # Split percentage, 10%
 BASE_SPLIT_PERCENTAGE = 0.1
+
+# Test parameters
+# C_VALUES = np.array([0.001, 0.01, 0.1])
+# KERNEL_VALUES = ['rbf']
+# GAMMA_VALUES = np.array(['scale', 0.0001])
+# DEGREE_VALUES = np.array([3])
+C_VALUES = np.array([0.001, 0.01, 0.1, 1, 10])
+KERNEL_VALUES = ['linear', 'poly', 'rbf', 'sigmoid']
+GAMMA_VALUES = np.array(['scale', 0.0001, 0.01, 1, 10])
+DEGREE_VALUES = np.array([2, 3, 4])
 
 ####################################################################################
 ################################# IMAGE OPERATIONS #################################
@@ -70,9 +79,11 @@ def load_test_images(pic_folder_path):
 #################################### ANALYSIS ######################################
 ####################################################################################
 
+
 def analyze_image(img):
     print('Average color -->', np.mean(img, axis=(0, 1)))
     print('St. dev color -->', np.std(img, axis=(0, 1)))
+
 
 def perform_image_analysis(cielo, pasto, vaca):
     print('---------------------------')
@@ -85,11 +96,17 @@ def perform_image_analysis(cielo, pasto, vaca):
     analyze_image(vaca)
     print('---------------------------')
 
-def build_confusion_matrix(predictions, test_labels, svm_kernel, svm_c):
-    confusion = np.zeros((3,3))
+
+def build_confusion_matrix(predictions, test_labels):
+    confusion = np.zeros((3, 3))
     for i in range(test_labels.shape[0]):
         confusion[test_labels[i], predictions[i]] += 1
-    save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'], f'./results/{svm_kernel}_{svm_c}_{int(datetime.timestamp(datetime.now()))}.png')
+    return confusion
+
+def build_and_save_confusion_matrix(predictions, test_labels, svm_kernel, svm_c):
+    confusion = build_confusion_matrix(predictions, test_labels)
+    save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'],
+                          f'./results/{svm_kernel}_{svm_c}_{int(datetime.timestamp(datetime.now()))}.png')
 
 ####################################################################################
 ############################### DATASET OPERATIONS #################################
@@ -134,9 +151,12 @@ def split_dataset(dataset, labels, percentage):
     train_labels, test_labels = labels[index_limit:], labels[:index_limit]
     return train_dataset, train_labels, test_dataset, test_labels
 
+
 def split_dataset_bins(dataset, labels, bin_index, elements_per_bin):
-    train_indexes = np.array([x for x in range(dataset.shape[0]) if x < bin_index * elements_per_bin or x > (bin_index + 1) * elements_per_bin])
-    test_indexes = np.array([x for x in range(dataset.shape[0]) if x >= bin_index * elements_per_bin and x <= (bin_index + 1) * elements_per_bin])
+    train_indexes = np.array([x for x in range(dataset.shape[0]) if x <
+                             bin_index * elements_per_bin or x > (bin_index + 1) * elements_per_bin])
+    test_indexes = np.array([x for x in range(dataset.shape[0]) if x >=
+                            bin_index * elements_per_bin and x <= (bin_index + 1) * elements_per_bin])
     train_dataset, test_dataset = dataset[train_indexes], dataset[test_indexes]
     train_labels, test_labels = labels[train_indexes], labels[test_indexes]
     return train_dataset, train_labels, test_dataset, test_labels
@@ -145,13 +165,15 @@ def split_dataset_bins(dataset, labels, bin_index, elements_per_bin):
 ##################################### TRAINING #####################################
 ####################################################################################
 
+
 def create_and_train_model(dataset, labels, svm_kernel, svm_c):
     # Apply SVM
     if Configuration.isVeryVerbose():
         print('[INFO] Creating SVM model -', datetime.now())
-    svc = SVC(kernel=svm_kernel, C=svm_c)
+    svc = SVC(kernel=svm_kernel, C=svm_c, cache_size=2000)
     clf = svc.fit(dataset, labels)
     return clf, svc
+
 
 def predict_with_model(clf, test_dataset, test_labels):
     # Run predictions
@@ -167,7 +189,8 @@ def predict_with_model(clf, test_dataset, test_labels):
             hits[test_labels[i]] += 1
     # Iterate the classes
     for i in range(0, 3):
-        hits[i] = float(hits[i]) / float(test_labels[test_labels == i].shape[0])
+        hits[i] = float(hits[i]) / \
+            float(test_labels[test_labels == i].shape[0])
     test_diff = np.abs(test_predictions - test_labels)
     error_abs = test_diff[test_diff > 0].shape[0]
     return test_predictions, error_abs, hits
@@ -209,15 +232,19 @@ def run_test(classifier, test_image):
 ################################# CROSS VALIDATION #################################
 ####################################################################################
 
+
 def run_cross_validation_iteration(i, elements_per_bin, dataset, labels, svm_kernel, svm_c, results):
     print('Running cross validation with bin number', i, datetime.now())
     # Perform the division
-    train_dataset, train_labels, test_dataset, test_labels = split_dataset_bins(dataset, labels, i, elements_per_bin)
+    train_dataset, train_labels, test_dataset, test_labels = split_dataset_bins(
+        dataset, labels, i, elements_per_bin)
     # Perform the training & classification
-    clf, _ = create_and_train_model(train_dataset, train_labels, svm_kernel, svm_c)
-    predictions, error_abs, accuracy = predict_with_model(clf, test_dataset, test_labels)
+    clf, _ = create_and_train_model(
+        train_dataset, train_labels, svm_kernel, svm_c)
+    predictions, error_abs, accuracy = predict_with_model(
+        clf, test_dataset, test_labels)
     # Build the confusion matrix and store it
-    build_confusion_matrix(predictions, test_labels, svm_kernel, svm_c)
+    build_and_save_confusion_matrix(predictions, test_labels, svm_kernel, svm_c)
     results[i] = [error_abs, accuracy]
 
 
@@ -233,7 +260,8 @@ def run_cross_validation(dataset, labels, cross_k, svm_kernel, svm_c):
     jobs = [0] * cross_k
     # Create multiple jobs, SVC does not really like multithreadding
     for i in range(cross_k):
-        run_cross_validation_iteration(i, elements_per_bin, dataset, labels, svm_kernel, svm_c, return_dict)
+        run_cross_validation_iteration(
+            i, elements_per_bin, dataset, labels, svm_kernel, svm_c, return_dict)
         # jobs[i] = multiprocessing.Process(target=run_cross_validation_iteration, args=(
         #     i, elements_per_bin, dataset, labels, svm_kernel, svm_c, return_dict))
         # jobs[i].start()
@@ -252,6 +280,105 @@ def run_cross_validation(dataset, labels, cross_k, svm_kernel, svm_c):
     print('Accuracy average -->', np.average(accuracies, axis=0),
           '\nstd -->', np.std(accuracies, axis=0))
 
+def run_single_svm(svc, train_dataset, train_labels, test_dataset, test_labels):
+    clf = svc.fit(train_dataset, train_labels)
+    if Configuration.isVeryVerbose():
+        print('[INFO] Making predictions -', datetime.now())
+    test_predictions = clf.predict(test_dataset)
+    # Calculate metrics
+    if Configuration.isVeryVerbose():
+        print('[INFO] Computing metrics -', datetime.now())
+    test_diff = np.abs(test_predictions - test_labels)
+    error_abs = test_diff[test_diff > 0].shape[0]
+    accuracy = 1 - (error_abs / test_predictions.shape[0])
+    confusion = build_confusion_matrix(test_predictions, test_labels)
+    return error_abs, accuracy, confusion, clf
+
+def store_svm_data(errors, accuracies, uid):
+    # Create DFs
+    error_data = pd.DataFrame(data=errors)
+    accuracy_data = pd.DataFrame(data=accuracies)
+    # Store the data
+    error_data.to_excel(f'./results/errors_{uid}.xlsx')
+    accuracy_data.to_excel(f'./results/accuracies_{uid}.xlsx')
+
+def run_multiple_svm(train_dataset, train_labels, test_dataset, test_labels):
+    # Storing results
+    uid = int(datetime.timestamp(datetime.now()))
+    best_error, best_clf, best_config = 10000000, None, None
+    # Data to convert to dataframe
+    error_data = {}
+    accuracy_data = {}
+    # Initial data
+    error_data['c'] = C_VALUES
+    accuracy_data['c'] = C_VALUES
+    for kernel in KERNEL_VALUES:
+        if kernel == 'rbf':
+            for g in GAMMA_VALUES:
+                error_points = []
+                accuracy_points = []
+                for c in C_VALUES:
+                    if Configuration.isVeryVerbose():
+                        print(f'[INFO] Creating SVM model {kernel} c={c} g={g}', datetime.now())
+                    svc = SVC(kernel=kernel, C=c, gamma=float(g) if g != 'scale' else g, cache_size=2000)
+                    error_abs, accuracy, confusion, clf = run_single_svm(svc, train_dataset, train_labels, test_dataset, test_labels)
+                    save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'],
+                            f'./results/{kernel}_{c}_{g}_{uid}.png')
+                    error_points.append(error_abs)
+                    accuracy_points.append(accuracy)
+                    # Compare to get best configuration
+                    if error_abs < best_error:
+                        best_clf = clf
+                        best_config = f'{kernel}_{c}_{g}'
+                        best_error = error_abs
+                error_data[f'{kernel}_{g}'] = error_points
+                accuracy_data[f'{kernel}_{g}'] = accuracy_points
+                store_svm_data(error_data, accuracy_data, uid)
+        elif kernel == 'poly':
+            for d in DEGREE_VALUES:
+                error_points = []
+                accuracy_points = []
+                for c in C_VALUES:
+                    if Configuration.isVeryVerbose():
+                        print(f'[INFO] Creating SVM model {kernel} c={c} d={d}', datetime.now())
+                    svc = SVC(kernel=kernel, C=c, degree=d, cache_size=2000)
+                    error_abs, accuracy, confusion, clf = run_single_svm(svc, train_dataset, train_labels, test_dataset, test_labels)
+                    save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'],
+                            f'./results/{kernel}_{c}_{d}_{uid}.png')
+                    error_points.append(error_abs)
+                    accuracy_points.append(accuracy)
+                    # Compare to get best configuration
+                    if error_abs < best_error:
+                        best_clf = clf
+                        best_config = f'{kernel}_{c}_{d}'
+                        best_error = error_abs
+                error_data[f'{kernel}_{d}'] = error_points
+                accuracy_data[f'{kernel}_{d}'] = accuracy_points
+                store_svm_data(error_data, accuracy_data, uid)
+        else:
+            error_points = []
+            accuracy_points = []
+            for c in C_VALUES:
+                if Configuration.isVeryVerbose():
+                    print(f'[INFO] Creating SVM model {kernel} c={c}', datetime.now())
+                svc = SVC(kernel=kernel, C=c, cache_size=2000)
+                error_abs, accuracy, confusion, clf = run_single_svm(svc, train_dataset, train_labels, test_dataset, test_labels)
+                save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'],
+                          f'./results/{kernel}_{c}_{uid}.png')
+                error_points.append(error_abs)
+                accuracy_points.append(accuracy)
+                # Compare to get best configuration
+                if error_abs < best_error:
+                    best_clf = clf
+                    best_config = f'{kernel}_{c}'
+                    best_error = error_abs
+            error_data[f'{kernel}'] = error_points
+            accuracy_data[f'{kernel}'] = accuracy_points
+            store_svm_data(error_data, accuracy_data, uid)
+    store_svm_data(error_data, accuracy_data, uid)
+    return best_clf, best_config
+
+
 ####################################################################################
 #################################### ENTRYPOINT ####################################
 ####################################################################################
@@ -265,14 +392,14 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
         svm_c (int, optional): _description_. Defaults to 1.
         svm_kernel (str, optional): _description_. Defaults to 'linear'.
         cross_k (_type_, optional): _description_. Defaults to None.
-        mode (str, optional): Execution mode, can be 'dataset' for analysis of the dataset and division or 'solve' for solving the excercise. The 'analyze' mode is used to gather analytics. Is used in combination of the cross_k paratemer for cross validation. Defaults to 'dataset'.
+        mode (str, optional): Execution mode, can be 'dataset' for analysis of the dataset and division or 'solve' for solving the excercise. The 'analyze-image' mode is used to gather analytics over images. The 'analyze' mode is used to test SVM. Is used in combination of the cross_k paratemer for cross validation. Defaults to 'dataset'.
     """
     # Load images
     if Configuration.isVeryVerbose():
         print('[INFO] Loading images -', datetime.now())
     train_cielo, train_pasto, train_vaca = load_train_images(pic_folder_path)
     test_cows = load_test_images(pic_folder_path)
-    if mode == 'analyze':
+    if mode == 'analyze-image':
         perform_image_analysis(train_cielo, train_pasto, train_vaca)
     else:
         # Build the dataset and shuffle it
@@ -283,9 +410,10 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
         dataset, labels = shuffle_dataset(dataset, labels)
         if mode == 'dataset':
             if cross_k == None:
-                a = 2
+                print("[ERROR] This parameter combination isn't supported")
             else:
-                run_cross_validation(dataset, labels, cross_k, svm_kernel, svm_c)
+                run_cross_validation(
+                    dataset, labels, cross_k, svm_kernel, svm_c)
         elif mode == 'solve':
             if cross_k == None:
                 # Run the full prediction flow
@@ -306,11 +434,29 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
                 if Configuration.isVeryVerbose():
                     print('[INFO] Computing metrics -', datetime.now())
                 test_diff = np.abs(test_predictions - test_labels)
-                print(1 - (test_diff[test_diff > 0].shape[0] / test_predictions.shape[0]))
+                print(
+                    1 - (test_diff[test_diff > 0].shape[0] / test_predictions.shape[0]))
                 # Running the real test
                 for test_cow in test_cows:
                     if Configuration.isVeryVerbose():
                         print('[INFO] Running test - COW -', datetime.now())
                     run_test(clf, np.copy(test_cow))
             else:
-                a = 2
+                print("[ERROR] This parameter combination isn't supported")
+        elif mode == 'analyze':
+            # Split the dataset in train/test
+            if Configuration.isVeryVerbose():
+                print('[INFO] Splitting dataset -', datetime.now())
+            # Split dataset in 60-40, then split 40 in 20-20.
+            # Use 60 to train, 20 to test, 20 to test best SVM
+            train_dataset, train_labels, test_dataset, test_labels = split_dataset(
+                dataset, labels, percentage=.6)
+            test_all_dataset, test_all_labels, test_best_dataset, test_best_labels = split_dataset(
+                test_dataset, test_labels, percentage=0.5)
+            clf, config = run_multiple_svm(train_dataset, train_labels, test_all_dataset, test_all_labels)
+            print(f'[RESULT] Best SVM configuration is {config} -', datetime.now())
+            test_predictions, error_abs, hits = predict_with_model(clf, test_best_dataset, test_best_labels)
+            print(f'[RESULT] Error for best SVM is {error_abs} -', datetime.now())
+            confusion = build_confusion_matrix(test_predictions, test_best_labels)
+            save_confusion_matrix(confusion, ['CIELO', 'PASTO', 'VACA'],
+                            f'./results/best_configuration.png')

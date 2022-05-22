@@ -42,4 +42,10 @@ python main.py -p 2 -f pics/ -v -vv
 python main.py -p 2 -f pics/ -ker linear -c 1 -mode dataset -k 10
 # Correr pruebas para la imagen y para otras imagenes
 python main.py -p 2 -f pics/ -ker linear -c 0.01 -mode solve -v -vv
+# Correr visualización en 3d
+python test_ex2_3d.py
+# Correr analisis de colores
+python main.py -p 2 -f pics/ -mode analyze-image -v -vv
+# Correr pruebas con kernels
+python main.py -p 2 -f pics/ -mode analyze -v -vv
 ```

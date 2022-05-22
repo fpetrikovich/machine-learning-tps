@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Running with: python test_ex2_3d.py
+
 def get_color_range(color, std):
     rs, gs, bs = [], [], []
     for r in range(max(0, int(color[0] - std[0])), min(255, int(color[0] + std[0])), 7):
@@ -9,7 +11,7 @@ def get_color_range(color, std):
                 rs.append(r)
                 gs.append(g)
                 bs.append(b)
-    return rs, gs, bs
+    return np.array(rs), np.array(gs), np.array(bs)
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
