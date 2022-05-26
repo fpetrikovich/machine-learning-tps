@@ -18,6 +18,7 @@ def main():
     parser.add_argument('-s', dest='seed', required=False)
     parser.add_argument('-c', dest='C', required=False)
     parser.add_argument('-ker', dest='kernel', required=False)
+    parser.add_argument('-kopt', dest='kernel_options', required=False)
     parser.add_argument('-k', dest='cross_k', required=False)
     parser.add_argument('-mode', dest='mode', required=False)
 
@@ -51,6 +52,10 @@ def main():
     cross_k = None
     if args.cross_k:
         cross_k = int(args.cross_k)
+    # Kernel options
+    ker_opts = None
+    if args.kernel_options:
+        ker_opts = float(args.kernel_options)
 
     # Store configuration
     Configuration.setVerbose(args.verbose)
@@ -63,7 +68,7 @@ def main():
         if args.folder == None:
             print('[ERROR] Missing path folder with images')
             return
-        run_exercise_2(args.folder, svm_c=C, svm_kernel=kernel, cross_k=cross_k, mode=args.mode)
+        run_exercise_2(args.folder, svm_c=C, svm_kernel=kernel, cross_k=cross_k, mode=args.mode, kernel_options=ker_opts)
 
 if __name__ == '__main__':
     main()
