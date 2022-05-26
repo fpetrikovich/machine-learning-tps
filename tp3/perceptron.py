@@ -14,12 +14,15 @@ class SimplePerceptron:
     def adjust_learning_rate(self, errors_so_far):
         if(len(errors_so_far) > 10):
             last_10_errors = errors_so_far[-10:]
+            # indicates if error at index i is bigger than the next error
             booleans = []
             for i in range(len(last_10_errors) - 1):
                 booleans.append(last_10_errors[i] > last_10_errors[i + 1])
             if all(booleans):
+                # If all are bigger ==> speed up the learning rate
                 self.alpha += 0.001
             elif not all(booleans):
+                # If no all are bigger ==> slow down the learning rate
                 self.alpha -= 0.01 * self.alpha
 
     def step(self, x): # funcion de activacion escalon
@@ -56,28 +59,39 @@ class SimplePerceptron:
     def algorithm(self, input):
         data = []
         for p in input:
+            # Adding value to each data set to calculate the bias w0
             data.append([1.0, p[0], p[1], p[2]])
         data = np.array(data)
+        # Initialize the weights randomly
         weights = np.random.rand(len(data[0]) - 1, 1)
+        # setting min w and error in case the loop is finished by iterations
         error_min = len(data) * 2
         error_this_epoch = 1
         w_min = weights
         error_per_epoch = []
         for epoch in range(self.iterations):
             if error_this_epoch > 0:
+                # Fetch a random data point
                 i = np.random.randint(0,len(input))
                 p = data[i]
+                # 0 if no error 2 or -2 if error in prediction
                 error = p[-1] - self.make_prediction(p, weights)
+                # Weight correction
                 for j in range(len(weights)):
+                    # Correct the perceptron weights if there was an error
                     weights[j] = weights[j] + (self.alpha * error * p[j])
+                # Calculate the error in all the data set for these weights
                 error_this_epoch = self.test_perceptron(data, weights)
                 error_per_epoch.append(error_this_epoch)
+                # Cada 10 epocas, si el perceptron es adaptativo
                 if self.adaptive and epoch % 10 == 0:
                     self.adjust_learning_rate(error_per_epoch)
+                # Updatear el error minimo si es necesario
                 if error_this_epoch < error_min:
                     error_min = error_this_epoch
                     w_min = weights
             else:
+                # If error is 0, leave the for loop
                 break
         w_min = w_min[:,0]
         plane_margin = self.calculate_margin(input, w_min[1], w_min[2], w_min[0])
