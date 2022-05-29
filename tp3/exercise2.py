@@ -1,3 +1,4 @@
+from functools import cache
 from config.configurations import Configuration
 from datetime import datetime
 from sklearn.svm import SVC
@@ -384,7 +385,7 @@ def run_multiple_svm(train_dataset, train_labels, test_dataset, test_labels):
 ####################################################################################
 
 
-def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, mode='dataset'):
+def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, mode='dataset', kernel_options=None):
     """_summary_
 
     Args:
@@ -425,7 +426,7 @@ def run_exercise_2(pic_folder_path, svm_c=1, svm_kernel='linear', cross_k=None, 
                 # Apply SVM
                 if Configuration.isVeryVerbose():
                     print('[INFO] Creating SVM model -', datetime.now())
-                svc = SVC(kernel=svm_kernel, C=svm_c)
+                svc = SVC(kernel=svm_kernel, C=svm_c, gamma="scale" if svm_kernel != 'rbf' else kernel_options, degree=kernel_options if svm_kernel == 'poly' else 3, cache_size=6000)
                 clf = svc.fit(train_dataset, train_labels)
                 if Configuration.isVeryVerbose():
                     print('[INFO] Making predictions -', datetime.now())
