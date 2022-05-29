@@ -10,13 +10,13 @@ def main():
 
     # Add arguments
     parser.add_argument('-f', dest='folder', required=False)    # Path to folder with images
-    parser.add_argument('-p', dest='point', required=True)
-    parser.add_argument('-i', dest='iterations', required=False)
-    parser.add_argument('-n', dest='n', required=False)
-    parser.add_argument('-mc', dest='misclassifications', required=False)
-    parser.add_argument('-m', dest='m', required=False)
-    parser.add_argument('-s', dest='seed', required=False)
-    parser.add_argument('-c', dest='C', required=False)
+    parser.add_argument('-p', dest='point', required=True)      # Exercise to run
+    parser.add_argument('-i', dest='iterations', required=False) # Amount of iterations to use
+    parser.add_argument('-n', dest='n', required=False)         # Amount of points in training set
+    parser.add_argument('-mc', dest='misclassifications', required=False) # Amount of wrongly classified points close to the hiperplane
+    parser.add_argument('-m', dest='m', required=False) # Amount of points close to the hiperplane to analyze to find a better one
+    parser.add_argument('-s', dest='seed', required=False) 
+    parser.add_argument('-c', dest='C', required=False) # How permissive the SVM is about misclassified points
     parser.add_argument('-ker', dest='kernel', required=False)
     parser.add_argument('-k', dest='cross_k', required=False)
     parser.add_argument('-mode', dest='mode', required=False)

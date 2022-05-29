@@ -10,6 +10,7 @@ class SimplePerceptron:
         self.initial_alpha = alpha
         self.iterations = iterations
         self.adaptive = adaptive
+        self.iterativeHiperplanes = []
 
     def adjust_learning_rate(self, errors_so_far):
         if(len(errors_so_far) > 10):
@@ -83,6 +84,8 @@ class SimplePerceptron:
                 # Calculate the error in all the data set for these weights
                 error_this_epoch = self.test_perceptron(data, weights)
                 error_per_epoch.append(error_this_epoch)
+                # Save the weights
+                self.iterativeHiperplanes.append(weights)
                 # Cada 10 epocas, si el perceptron es adaptativo
                 if self.adaptive and epoch % 10 == 0:
                     self.adjust_learning_rate(error_per_epoch)
@@ -102,6 +105,7 @@ class SimplePerceptron:
         data.sort(key=lambda t: self.calculate_distance(t, weights[1], weights[2], weights[0]))
         class1 = []
         class2 = []
+        # Tomar los n puntos mas cercanos al hiperplano de cada clase
         for p in data:
             if p[2] == 1 and len(class1) < n:
                 class1.append(p)
@@ -113,10 +117,14 @@ class SimplePerceptron:
         best_points = None
         best_dist_y = None
 
+        # Dual class => de donde tomo 2 puntos
+        # Single class => de donde tomo 1 punto
         for dual_class in [class1, class2]:
             single_class = class1
             if dual_class is single_class:
                 single_class = class2
+            
+            # Para cada punto del single_class, tomo 2 del dual class
             for single_point in single_class:
                 for i in range(len(dual_class)):
                     for j in range(i+1, len(dual_class)):
@@ -161,3 +169,6 @@ class SimplePerceptron:
             if np.sign(sumatoria) != np.sign(p[2]):
                 error += 1
         return error/len(test_data)
+
+    def getEpochHiperplanes(self):
+        return self.iterativeHiperplanes
