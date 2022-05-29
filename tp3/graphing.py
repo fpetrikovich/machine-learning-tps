@@ -22,7 +22,7 @@ def calculateR2Hiperplanes(weights):
 
     return iterativeHiperplanes
 
-def graphR2Hiperplane(points, weights):
+def animateR2Hiperplane(points, weights):
     hiperplanes = calculateR2Hiperplanes(weights)
 
     fig, ax = plt.subplots()
@@ -60,6 +60,27 @@ def graphR2Hiperplane(points, weights):
         return line,
 
     ani = animation.FuncAnimation(
-        fig, animate, interval=200, blit=False, save_count=50)
+        fig, animate, interval=200, blit=True, save_count=50)
 
     plt.show()
+
+def graphAllHiperplanes(printout, points, y_perceptron, optimal_vector, y_optimal, optimal_dist_y, clf, y_svm, y_svm_down, y_svm_up):
+        
+    plt.scatter(points[:,0], points[:,1], c=points[:,2])
+    plt.plot(x, y_perceptron, color='red', label='Perceptron')
+
+    plt.plot(x, y_svm, color='blue', label='SVM')
+    plt.plot(x, y_svm_down, color='blue', linestyle='dashed', alpha=0.5)
+    plt.plot(x, y_svm_up, color='blue', linestyle='dashed', alpha=0.5)
+    plt.scatter(clf.support_vectors_[:,0], clf.support_vectors_[:,1], s=100, linewidth=1, facecolors='none', edgecolors='k')
+
+    if optimal_vector:
+        plt.plot(x, y_optimal, color='green', label='Óptimo')
+        plt.plot(x, y_optimal+optimal_dist_y/2, color='green', linestyle='dotted', alpha=0.5)
+        plt.plot(x, y_optimal-optimal_dist_y/2, color='green', linestyle='dotted', alpha=0.5)
+    plt.xlim(-0.1, 5.1)
+    plt.ylim(-0.1, 5.1)
+    plt.legend()
+    if printout:
+        plt.show()
+    plt.clf()

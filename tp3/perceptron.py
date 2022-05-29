@@ -85,7 +85,7 @@ class SimplePerceptron:
                 error_this_epoch = self.test_perceptron(data, weights)
                 error_per_epoch.append(error_this_epoch)
                 # Save the weights
-                self.iterativeHiperplanes.append(weights)
+                self.iterativeHiperplanes.append(np.copy(weights))
                 # Cada 10 epocas, si el perceptron es adaptativo
                 if self.adaptive and epoch % 10 == 0:
                     self.adjust_learning_rate(error_per_epoch)

@@ -1,4 +1,3 @@
-from functools import cache
 from config.configurations import Configuration
 from datetime import datetime
 from sklearn.svm import SVC

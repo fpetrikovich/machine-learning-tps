@@ -1,14 +1,7 @@
-from graphing import graphR2Hiperplane
-from utils.confusion import get_accuracy, get_precision
-from utils.plotting import plot_confusion_matrix
-from config.configurations import Configuration
+from graphing import animateR2Hiperplane, graphAllHiperplanes
 from perceptron import SimplePerceptron
 from sklearn.svm import SVC
-import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
-import multiprocessing
-import datetime
 import math
 import random
 
@@ -77,27 +70,9 @@ def run_exercise_1(n=25, misclassifications=0, seed=None, iterations=5000, m=4, 
         print("SVM\t\tMargin:", perceptron.calculate_margin(points, w_svm[1], w_svm[2], w_svm[0]),
             "\tError: ", perceptron.test_classifier(points, w_svm), "\tWeights: ", w_svm)
 
-    # Plot
-    # plt.scatter(points[:,0], points[:,1], c=points[:,2])
-    # plt.plot(x, y_perceptron, color='red', label='Perceptron')
-
-    # plt.plot(x, y_svm, color='blue', label='SVM')
-    # plt.plot(x, y_svm_down, color='blue', linestyle='dashed', alpha=0.5)
-    # plt.plot(x, y_svm_up, color='blue', linestyle='dashed', alpha=0.5)
-    # plt.scatter(clf.support_vectors_[:,0], clf.support_vectors_[:,1], s=100, linewidth=1, facecolors='none', edgecolors='k')
-
-    # if optimal_vector:
-    #     plt.plot(x, y_optimal, color='green', label='Óptimo')
-    #     plt.plot(x, y_optimal+optimal_dist_y/2, color='green', linestyle='dotted', alpha=0.5)
-    #     plt.plot(x, y_optimal-optimal_dist_y/2, color='green', linestyle='dotted', alpha=0.5)
-    # plt.xlim(-0.1, 5.1)
-    # plt.ylim(-0.1, 5.1)
-    # plt.legend()
-    # if printout:
-    #     plt.show()
-    # plt.clf()
-
-    graphR2Hiperplane(points, perceptron.getEpochHiperplanes())
+    # Plotting
+    graphAllHiperplanes(printout, points, y_perceptron, optimal_vector, y_optimal, optimal_dist_y, clf, y_svm, y_svm_down, y_svm_up)
+    animateR2Hiperplane(points, perceptron.getEpochHiperplanes())
 
     resp = [perceptron.calculate_margin(points, a,b,c), perceptron.test_classifier(points, [c,a,b]),
             margin, perceptron.test_classifier(points, w),
