@@ -47,6 +47,8 @@ def run_exercise_1(n=25, misclassifications=0, seed=None, iterations=5000, m=4, 
     # Perceptron
     w, margin = perceptron.algorithm(points) # w = [b0, b1, b2] = [c, a, b]
     y_perceptron = -w[1]/w[2] * x - w[0]/w[2] # recta que dibujo el perceptron
+    y_optimal = None
+    
     optimal_vector, optimal_margin, optimal_dist_y = perceptron.optimal_hiperplane(w, points, m)
     if printout:
         print("RECTA\t\tMargin:", perceptron.calculate_margin(points, a,b,c), "\tError: ", perceptron.test_classifier(points, [c,a,b]), "\tWeights: ", [c,a,b])
@@ -72,7 +74,7 @@ def run_exercise_1(n=25, misclassifications=0, seed=None, iterations=5000, m=4, 
 
     # Plotting
     graphAllHiperplanes(printout, points, y_perceptron, optimal_vector, y_optimal, optimal_dist_y, clf, y_svm, y_svm_down, y_svm_up)
-    animateR2Hiperplane(points, perceptron.getEpochHiperplanes())
+    # animateR2Hiperplane(points, perceptron.getEpochHiperplanes())
 
     resp = [perceptron.calculate_margin(points, a,b,c), perceptron.test_classifier(points, [c,a,b]),
             margin, perceptron.test_classifier(points, w),
