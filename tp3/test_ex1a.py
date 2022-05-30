@@ -62,9 +62,8 @@ def main():
         svm_margins.append([])
         for seed in seeds:
             resp = run_exercise_1(50, 0, int(seed), 5000, 4, c, False)
-            if len(resp)==8:
-                svm_margins[boxplot_index].append(resp[4])
-                svm_errors[boxplot_index].append(resp[5])
+            svm_margins[boxplot_index].append(resp[4])
+            svm_errors[boxplot_index].append(resp[5])
         boxplot_index += 1
     plt.boxplot(svm_errors, labels=c_values)
     plt.xlabel('C')
