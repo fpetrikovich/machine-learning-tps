@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 def main():
     # Demostrar que 5000 iteraciones son suficientes
     print("TESTING ITERATIONS")
+    misclassifications = 10
     errors = []
     seeds = np.random.rand(25)*10000 #np.linspace(0, 10000, 25)
     iteration_options = [1, 10, 50, 100, 500, 1000, 5000, 10000, 50000]
@@ -12,7 +13,7 @@ def main():
     for iterations in iteration_options:
         errors.append([])
         for seed in seeds:
-            resp = run_exercise_1(50, 0, int(seed), iterations, 4, 1, False)
+            resp = run_exercise_1(50, misclassifications, int(seed), iterations, 4, 1, False)
             errors[boxplot_index].append(resp[3])
         boxplot_index += 1
     plt.boxplot(errors, labels=iteration_options)
@@ -32,7 +33,7 @@ def main():
         errors.append([])
         margins.append([])
         for seed in seeds:
-           resp = run_exercise_1(50, 0, int(seed), 5000, m, 1, False)
+           resp = run_exercise_1(50, misclassifications, int(seed), 5000, m, 1, False)
            if len(resp)==8:
                errors[boxplot_index].append(resp[-1])
                margins[boxplot_index].append(resp[-2])
@@ -61,7 +62,7 @@ def main():
         svm_errors.append([])
         svm_margins.append([])
         for seed in seeds:
-            resp = run_exercise_1(50, 0, int(seed), 5000, 4, c, False)
+            resp = run_exercise_1(50, misclassifications, int(seed), 5000, 4, c, False)
             svm_margins[boxplot_index].append(resp[4])
             svm_errors[boxplot_index].append(resp[5])
         boxplot_index += 1
