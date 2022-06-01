@@ -11,7 +11,7 @@ def print_entire_df (df):
     print(df)
 
 def read_data(file):
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, sep=' ')
     return df
 
 def split_train_test_dataset(X, y):
@@ -21,8 +21,6 @@ def split_train_test_dataset(X, y):
 def run_regression(df):
     X = df[[ Headers.BICROMIAL.value, Headers.PELVIC_BREADTH.value, Headers.BITROCHANTERIC.value, Headers.CHEST_DEPTH.value, Headers.CHEST_DIAM.value, Headers.ELBOW_DIAM.value, Headers.WRIST_DIAM.value, Headers.KNEE_DIAM.value, Headers.ANKLE_DIAM.value, Headers.SHOULDER_GIRTH.value, Headers.CHEST_GIRTH.value, Headers.WAIST_GIRTH.value, Headers.NAVEL_GIRTH.value, Headers.HIP_GIRTH.value, Headers.THIGH_GIRTH.value, Headers.BICEP_GIRTH.value, Headers.FOREARM_GIRTH.value, Headers.KNEE_GIRTH.value, Headers.CALF_GIRTH.value, Headers.ANKLE_GIRTH.value, Headers.WRIST_GIRTH.value, Headers.AGE.value, Headers.HEIGHT.value ]]
     y = df[Headers.WEIGHT.value]
-
-    print_entire_df(X)
     
     # Splitting dataset using sklearn
     x_train, x_test, y_train, y_test = split_train_test_dataset(X, y)
