@@ -26,3 +26,8 @@ class Headers(Enum):
     AGE = 'age'
     HEIGHT = 'height'
 
+x_headers_list = [ Headers.BICROMIAL.value, Headers.PELVIC_BREADTH.value, Headers.BITROCHANTERIC.value, Headers.CHEST_DEPTH.value,
+    Headers.CHEST_DIAM.value, Headers.ELBOW_DIAM.value, Headers.WRIST_DIAM.value, Headers.KNEE_DIAM.value, Headers.ANKLE_DIAM.value,
+    Headers.SHOULDER_GIRTH.value, Headers.CHEST_GIRTH.value, Headers.WAIST_GIRTH.value, Headers.NAVEL_GIRTH.value, Headers.HIP_GIRTH.value,
+    Headers.THIGH_GIRTH.value, Headers.BICEP_GIRTH.value, Headers.FOREARM_GIRTH.value, Headers.KNEE_GIRTH.value, Headers.CALF_GIRTH.value,
+    Headers.ANKLE_GIRTH.value, Headers.WRIST_GIRTH.value, Headers.AGE.value, Headers.HEIGHT.value ]
