@@ -78,7 +78,7 @@ def test(x_test, y_test, B):
         TSS += (actual-meanY)**2
     sigma2 = RSS/(n-p-1)
 
-    R2 = 1 - RSS/meanY
+    R2 = 1 - RSS/TSS
     R2adj = 1 - (1-R2)*(n-1)/(n-q)
 
     F = ((TSS - RSS)/p) / (RSS/(n-p-1))
