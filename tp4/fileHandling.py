@@ -52,3 +52,8 @@ def scale_df(_df, headers, extra_id_header):
     # Add an extra ID header to the values
     df[extra_id_header] = np.arange(0, df.shape[0])
     return df
+
+def split_dataset_data_labels(df, data_headers, label_headers):
+    data = df[data_headers].reset_index(drop=True)
+    labels = df[label_headers].reset_index(drop=True)
+    return data, labels
