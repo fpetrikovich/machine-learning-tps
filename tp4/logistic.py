@@ -2,6 +2,7 @@
 from sklearn.linear_model import LogisticRegression
 from datetime import datetime
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Local
@@ -55,16 +56,21 @@ def run_logistic(df, cross_k = None, account_male_female = False):
     # Split dataset
     train, test = split_dataset(df, TRAIN_TEST)
     # Get data and labels division
-    train_data, train_labels = split_dataset_data_labels(train, [Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value], [Headers.TVDLM.value])
-    test_data, test_labels = split_dataset_data_labels(test, [Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value], [Headers.TVDLM.value])
+    train_data, train_labels = split_dataset_data_labels(train, [Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value], [Headers.SIGDZ.value])
+    train_labels = train_labels.values.ravel()
+    test_data, test_labels = split_dataset_data_labels(test, [Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value], [Headers.SIGDZ.value])
+    test_labels = test_labels.values.ravel()
     # Get the logistics model
     # We have to ravel in order to get a proper array if labels
-    clf = get_model(train_data, train_labels.values.ravel())
+    clf = get_model(train_data, train_labels)
     # Making predictions
     predictions = clf.predict(test_data)
     # Confusion
     result_filepath = f'{RESULTS_DIR}/confusion_{int(datetime.timestamp(datetime.now()))}.png'
     print(f'[INFO] Building and saving confusion matrix ({result_filepath})...')
-    build_and_save_confusion_matrix(predictions, test_labels.values.ravel(), (2,2), ['0', '1'], result_filepath)
+    build_and_save_confusion_matrix(predictions, test_labels, (2,2), ['0', '1'], result_filepath)
     # PValue
     variable_importance(clf, train_data.columns.to_list())
+    # Accuracy
+    accuracy = np.sum([1 if predictions[i] == test_labels[i] else 0 for i in range(0, predictions.shape[0])]) / predictions.shape[0]
+    print(f'[RESULT] Accuracy is {accuracy}')
