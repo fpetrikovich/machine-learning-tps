@@ -1,5 +1,4 @@
 from fileHandling import scale_df, print_entire_df
-from config.constants import Headers
 import numpy as np
 from config.configurations import Configuration
 
@@ -65,10 +64,10 @@ def perform_reduced_classification(train, test, k_neighbors, id_header, calculat
     return result
 
 
-def replace_nearest_neighbor(df, target_header, id_header, full_headers, calculation_headers):
+def replace_nearest_neighbor(df, target_header, scaling_headers, id_header, full_headers, calculation_headers):
     # Scale the DF to get proper lengths
     scaled_df = scale_df(
-        df, [Headers.AGE, Headers.CAD_DUR], extra_id_header=id_header)
+        df, scaling_headers, extra_id_header=id_header)
     if Configuration.isVeryVerbose():
         print_entire_df(scaled_df)
     # Get a filter based on the target header and apply it

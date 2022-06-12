@@ -47,8 +47,7 @@ def scale_df(_df, headers, extra_id_header):
     # Create a copy just in case
     df = _df.copy(deep=True)
     # Iterate headers to modify
-    for header in headers:
-        h = header.value
+    for h in headers:
         df[h] = (df[h] - np.min(df[h])) / (np.max(df[h]) - np.min(df[h]))
     # Add an extra ID header to the values
     df[extra_id_header] = np.arange(0, df.shape[0])

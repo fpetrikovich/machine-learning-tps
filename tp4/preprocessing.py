@@ -2,7 +2,7 @@ import argparse
 from config.constants import Headers
 from config.configurations import Configuration
 from fileHandling import read_csv, export_csv
-from analysis import analyze_dataset
+from preprocessing.analysis import analyze_dataset
 from preprocessing.knn import replace_nearest_neighbor
 
 
@@ -37,7 +37,7 @@ def main():
     # Perform file replacements
     print("Running replacements...")
     df = replace_nearest_neighbor(
-        df, Headers.CHOLESTEROL.value, id_header=Headers.EXTRA_ID_HEADER.value,
+        df, Headers.CHOLESTEROL.value, id_header=Headers.EXTRA_ID_HEADER.value, scaling_headers=[Headers.AGE.value, Headers.CAD_DUR.value],
         full_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value,
                       Headers.CAD_DUR.value, Headers.CHOLESTEROL.value, Headers.EXTRA_ID_HEADER.value],
         calculation_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value, Headers.CAD_DUR.value])

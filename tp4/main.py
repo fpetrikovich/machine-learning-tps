@@ -1,11 +1,7 @@
 import argparse
-from config.constants import Headers
 from config.configurations import Configuration
 from fileHandling import read_csv
 from logistic import run_logistic
-from analysis import analyze_dataset
-from knn import replace_nearest_neighbor
-
 
 def main():
     # Parse arguments
