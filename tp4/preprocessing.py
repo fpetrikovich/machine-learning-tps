@@ -1,10 +1,10 @@
 import argparse
 from config.constants import Headers
 from config.configurations import Configuration
-from fileHandling import read_csv, export_csv
+from fileHandling import read_csv, export_csv, print_entire_df
 from preprocessing.analysis import analyze_dataset
 from preprocessing.knn import replace_nearest_neighbor
-
+import pandas as pd
 
 def main():
     # Parse arguments
@@ -36,12 +36,21 @@ def main():
     
     # Perform file replacements
     print("Running replacements...")
+    # Replace for CHOLESTEROL
     df = replace_nearest_neighbor(
         df, Headers.CHOLESTEROL.value, id_header=Headers.EXTRA_ID_HEADER.value, scaling_headers=[Headers.AGE.value, Headers.CAD_DUR.value],
         full_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value,
                       Headers.CAD_DUR.value, Headers.CHOLESTEROL.value, Headers.EXTRA_ID_HEADER.value],
         calculation_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value, Headers.CAD_DUR.value])
-    
+    # Replace for TVDLM
+    df = replace_nearest_neighbor(
+        df, Headers.TVDLM.value, id_header=Headers.EXTRA_ID_HEADER.value, scaling_headers=[Headers.AGE.value, Headers.CAD_DUR.value],
+        full_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value,
+                      Headers.CAD_DUR.value, Headers.CHOLESTEROL.value, Headers.EXTRA_ID_HEADER.value],
+        calculation_headers=[Headers.AGE.value, Headers.SEX.value, Headers.SIGDZ.value, Headers.TVDLM.value, Headers.CAD_DUR.value])
+    # Make sure the TVDLM and CHOLESTEROL variable is not float
+    df[Headers.TVDLM.value] = df[Headers.TVDLM.value].astype(int)
+    df[Headers.CHOLESTEROL.value] = df[Headers.CHOLESTEROL.value].astype(int)
     # Store replacements in files
     if args.analyze:
         print("Running analysis...")

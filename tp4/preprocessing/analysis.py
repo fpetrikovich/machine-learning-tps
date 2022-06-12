@@ -23,13 +23,19 @@ def analyze_dataset(df):
     print('---------------------------')
     print(f"NaN cholesterol values are {nan_df.shape[0]} out of {df.shape[0]} ({100 * nan_df.shape[0]/df.shape[0]}%)")
     print('---------------------------')
+    
+    # Get DF with all NaN values
+    nan_df = df[pd.isna(df[Headers.TVDLM.value])]
+    print('---------------------------')
+    print(f"NaN cholesterol values are {nan_df.shape[0]} out of {df.shape[0]} ({100 * nan_df.shape[0]/df.shape[0]}%)")
+    print('---------------------------')
 
     # Max values
     nan_free_df = df[~pd.isna(df[Headers.CHOLESTEROL.value])]
     print('---------------------------')
     print(f"Cholesterol values range from {np.min(nan_free_df[Headers.CHOLESTEROL.value])} to {np.max(nan_free_df[Headers.CHOLESTEROL.value])}")
     print(f"Cad.dur values range from {np.min(nan_free_df[Headers.CAD_DUR.value])} to {np.max(nan_free_df[Headers.CAD_DUR.value])}")
-    print(f"Agre values range from {np.min(nan_free_df[Headers.AGE.value])} to {np.max(nan_free_df[Headers.AGE.value])}")
+    print(f"Age values range from {np.min(nan_free_df[Headers.AGE.value])} to {np.max(nan_free_df[Headers.AGE.value])}")
     print('---------------------------')
 
     # Plotting cholesterol histogram
