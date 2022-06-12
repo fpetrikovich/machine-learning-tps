@@ -1,3 +1,4 @@
+import numpy as np
 
 class KMeans:
     
@@ -8,42 +9,67 @@ class KMeans:
         # Mismo indice que points para indicar a que grupo pertenece cada punto
         self.assignments = self.randomly_assign_group()
 
-    def randomly_assign_group(self)
-        return np.random.choice(np.array(range(1, self.k+1)), size=self.n, replace=True)
+    def randomly_assign_group(self):
+        # Ensure all K are in selected at least once
+        range_arr = np.array(range(1, self.k + 1))
+        selection = np.copy(range_arr)
+        return np.append(selection, np.random.choice((range_arr), size=(self.n-self.k), replace=True))
 
-    def apply_k_means(self):
+    def apply(self):
         was_modified = True
 
-        while (was_modified) {
-            groups = self.divide_into_groups()
-            was_modified = self.reassign_groups(groups)
-        }
+        # While there are still group changes, continue the algorithm
+        while was_modified:
+            groups, centroides = self.divide_into_groups()
+            was_modified = self.reassign_groups(groups, centroides)
+        
+        return self.points, self.assignments
 
-    def reassign_groups(self, groups):
-        #todo!
-        return False
+    def reassign_groups(self, groups, centroides):
+        min_dist = None
+        # Create a new assignment array where the new group ids will be stored
+        new_assigments = np.copy(self.assignments)
 
-    def divide_into_groups():
+        for group_id in groups:
+            for point_idx in groups[group_id]:
+                # Point we are analyzing
+                point = self.points[point_idx]
+                # For each point, check which centroide is nearest
+                for centroide_id in centroides:
+                    # Distance of the point with the centroide in question
+                    dist = self.calculate_euclidean_distance(centroides[centroide_id], point)
+                    # Saving the group of the centroide that has the minimum distance
+                    if min_dist is None or dist < min_dist:
+                        min_dist = dist
+                        new_assigments[point_idx] = centroide_id
+                    
+        # If there were no changes to the group, no modifications occurred
+        was_modified = not np.array_equal(new_assigments, self.assignments)
+        self.assignments = new_assigments
+        return was_modified
+
+    def divide_into_groups(self):
         groups = {}
         for i in range(0, len(self.assignments)):
             group_id = self.assignments[i]
             if group_id in groups:
-                groups[group_id].points.append(self.points[i])
+                groups[group_id].append(i)
             else:
-                groups[group_id] = {
-                    points: [],
-                    centroide: []
-                }
+                groups[group_id] = []
 
-        self.calculate_centroides(groups)
+        centroides = self.calculate_centroides(groups)
 
-        return groups
+        return groups, centroides
 
-    def calculate_centroids(self, groups):
+    def calculate_centroides(self, groups):
+        centroides = {}
         for group_id in groups:
-            groups[group_id].centroide = self.calculate_centroide(groups[group_id].points)
+            centroides[group_id] = self.calculate_centroide(groups[group_id])
+            print(centroides[group_id])
+        return centroides
 
-    def calculate_centroide(self, group_points):
+    def calculate_centroide(self, group_points_idx):
+        group_points = list(map(lambda i: self.points[i], group_points_idx))
         return np.sum(group_points, axis=0) / len(group_points)
 
     def calculate_euclidean_distance(self, p1, p2):
@@ -54,7 +80,7 @@ class KMeans:
         result = 0
         for i in range(0, len(Ck)-1):
             for j in range(i+1, len(Ck)):
-                result += variance_bw_points(Ck[i], Ck[j])
+                result += self.variance_bw_points(Ck[i], Ck[j])
 
         return (1/len(Ck)) * result
 

@@ -52,3 +52,6 @@ def scale_df(_df, headers, extra_id_header):
     # Add an extra ID header to the values
     df[extra_id_header] = np.arange(0, df.shape[0])
     return df
+
+def df_to_numpy(_df):
+    return _df.copy(deep=True).to_numpy()
