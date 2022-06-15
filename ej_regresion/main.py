@@ -4,7 +4,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from math import sqrt
-from constants import Headers, x_headers_list
+from constants import Headers, x_headers_list, best_headers_list
 import matplotlib.gridspec as gridspec
 from sklearn.model_selection import train_test_split
 
@@ -31,6 +31,9 @@ def split_df_filtered_attributes(df, attributes, seed):
     y = df[Headers.WEIGHT.value]
     x_train, x_test, y_train, y_test = split_train_test_dataset(x, y, seed)
     return x_train, x_test, y_train, y_test
+
+def split_df_good_attributes(df, seed):
+    return split_df_filtered_attributes(df, best_headers_list, seed)
 
 def run_regression(x_train, y_train):
     # Convert X and Y to matrix and array
@@ -109,13 +112,17 @@ def main():
     df = read_data(args.file)
 
     graph_data2 = []
-    error2 = []
     graph_data3 = []
+    graph_data4 = []
+    error2 = []
     error3 = []
-    for attr in range(len(x_headers_list)):
+    error4 = []
+    attribute_scores = {}
+    for attr in x_headers_list:
         graph_data3.append([])
         error3.append([])
-    for i in range(10):
+        attribute_scores[attr] = 0
+    for i in range(250):
         seed = random.randint(1, 9999)
 
         # EJERCICIO 2
@@ -135,54 +142,74 @@ def main():
 
         # EJERCICIO 3 (Forward Selection, usa solo RSS)
         #print("\n== EJERCICIO 3 -- FORWARD SELECTION ==")
-        p = len(x_headers_list)
-        list_of_attributes = []
-        best_attributes = []
-        best_attributes_global = []
-        best_data = []
-        best_data_global = []
-        min_RSS_global = 99999999
-        for amount_of_attributes in range(p):
-            min_RSS = 99999999
-            for attr in x_headers_list:
-                current_attributes = list_of_attributes.copy()
-                current_attributes.append(attr)
-                x_train, x_test, y_train, y_test = split_df_filtered_attributes(df, current_attributes, seed)
-                B, X = run_regression(x_train, y_train)
-                if B is not None:
-                    RSS, TSS, sigma2, R2, R2adj, F = test(x_test, y_test, B)
-                    if RSS < min_RSS:
-                        min_RSS = RSS
-                        best_attributes = current_attributes.copy()
-                        best_data = [B, RSS, TSS, sigma2, R2, R2adj, F]
-            list_of_attributes = best_attributes.copy()
-            #print(amount_of_attributes+1, "attributes -> RSS =", min_RSS)
-            graph_data3[amount_of_attributes].append(min_RSS)
-            error3[amount_of_attributes].append(sqrt(sigma2))
-            if min_RSS < min_RSS_global:
-                best_attributes_global = best_attributes.copy()
-                min_RSS_global = min_RSS
-                best_data_global = best_data.copy()
+        #p = len(x_headers_list)
+        #list_of_attributes = []
+        #best_attributes = []
+        #best_attributes_global = []
+        #best_data = []
+        #best_data_global = []
+        #min_RSS_global = 99999999
+        #for amount_of_attributes in range(p):
+        #    min_RSS = 99999999
+        #    for attr in x_headers_list:
+        #        current_attributes = list_of_attributes.copy()
+        #        current_attributes.append(attr)
+        #        x_train, x_test, y_train, y_test = split_df_filtered_attributes(df, current_attributes, seed)
+        #        B, X = run_regression(x_train, y_train)
+        #        if B is not None:
+        #            RSS, TSS, sigma2, R2, R2adj, F = test(x_test, y_test, B)
+        #            if RSS < min_RSS:
+        #                min_RSS = RSS
+        #                best_attributes = current_attributes.copy()
+        #                best_data = [B, RSS, TSS, sigma2, R2, R2adj, F]
+        #    list_of_attributes = best_attributes.copy()
+        #    for attr in list_of_attributes:
+        #        attribute_scores[attr] += 1
+        #    print(amount_of_attributes+1, "attributes -> RSS =", min_RSS)
+        #    graph_data3[amount_of_attributes].append(min_RSS)
+        #    error3[amount_of_attributes].append(sqrt(sigma2))
+        #    if min_RSS < min_RSS_global:
+        #        best_attributes_global = best_attributes.copy()
+        #        min_RSS_global = min_RSS
+        #        best_data_global = best_data.copy()
         #print("\nRSS = ", min_RSS_global, " using", len(best_attributes_global),"attributes:")
         #print(best_attributes_global)
         #print("sigma2 =", best_data_global[3])
         #print("R2 =", best_data_global[4])
         #print("R2 adj =", best_data_global[5])
         #print("F =", best_data_global[6])
+
+        print("== EJERCICIO 4 -- NUEVO MODELO ==")
+        x_train, x_test, y_train, y_test = split_df_good_attributes(df, seed)
+        B, X = run_regression(x_train, y_train)
+        RSS, TSS, sigma2, R2, R2adj, F = test(x_test, y_test, B)
+        varB = sigma2 * (X.T*X).I
+        print("RSS =", RSS)
+        graph_data4.append(RSS)
+        error4.append(sqrt(sigma2))
+        print("sigma2 =", sigma2)
+        print("R2 =", R2)
+        print("R2 adj =", R2adj)
+        print("F =", F)
+        get_standard_error(x_train, B, sigma2)
     plot_x = []
     plot_y = []
     plot_e = []
-    for i in range(p):
-        plot_x.append(i)
-        plot_y.append(np.mean(graph_data3[i]))
-        plot_e.append(np.std(graph_data3[i]))
-    fig = plt.figure()
-    ax = plt.axes()
-    ax.set_yscale("log")
-    ax.errorbar(plot_x, plot_y, plot_e, marker='^', capsize=3)
-    ax.set_xlabel("Atributos")
-    ax.set_ylabel("RSS")
-    plt.show()
+    #for i in range(p):
+    #    plot_x.append(i)
+    #    plot_y.append(np.mean(graph_data3[i]))
+    #    plot_e.append(np.std(graph_data3[i]))
+    #print(attribute_scores)
+    #fig = plt.figure()
+    #ax = plt.axes()
+    #ax.set_yscale("log")
+    #ax.errorbar(plot_x, plot_y, plot_e, marker='^', capsize=3)
+    #ax.set_xlabel("Atributos")
+    #ax.set_ylabel("RSS")
+    #plt.show()
+    print("== FINAL RESULTS ==")
+    print("Median:", np.median(graph_data2), " vs", np.median(graph_data4))
+    print("Avg:", np.average(graph_data2), " vs", np.average(graph_data4))
 
 
 if __name__ == '__main__':
