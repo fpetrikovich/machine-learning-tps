@@ -20,6 +20,14 @@ def read_csv(file, delimiter = ';'):
 def export_csv(df, file, delimiter = ';'):
     df.to_csv (file, index = None, header=True, sep=delimiter) 
 
+# Writes matrix to file 
+# Input: file where to write, matrix to write
+def write_matrix_to_file(filename, _matrix):
+    mat = np.matrix(_matrix)
+    with open('output/' + filename,'wb') as f:
+        for line in mat:
+            np.savetxt(f, line, fmt='%.2f')
+
 ####################################################################################
 ################################# PRINTING DATA ####################################
 ####################################################################################
