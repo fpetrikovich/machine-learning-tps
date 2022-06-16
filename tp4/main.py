@@ -1,6 +1,6 @@
 import argparse
 from config.configurations import Configuration
-from exerciseE import run_KMeans
+from exerciseE import run_KMeans, run_hierarchy
 from fileHandling import read_csv
 from logistic import run_logistic
 
@@ -32,7 +32,7 @@ def main():
 
     cross_k = None
     group_k = None
-    
+
     file = args.file
     if args.cross_k != None:
         cross_k = int(args.cross_k)
@@ -50,6 +50,8 @@ def main():
     elif item == 'e':
         if group_k is None: group_k = 2
         run_KMeans(file, group_k)
+    elif item == 'f':
+        run_hierarchy(file)
 
 
 if __name__ == '__main__':

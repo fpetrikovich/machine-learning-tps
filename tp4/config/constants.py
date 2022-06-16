@@ -8,3 +8,9 @@ class Headers(Enum):
     SIGDZ = 'sigdz'
     TVDLM = 'tvdlm'
     EXTRA_ID_HEADER = 'original id'
+
+class Similarity_Methods(Enum):
+    MAX = 'max'
+    MIN = 'min'
+    AVG = 'avg'
+    CENTROID = 'centroid'
