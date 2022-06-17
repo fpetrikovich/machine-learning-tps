@@ -4,6 +4,7 @@ class Headers(Enum):
     SEX = 'sex'
     AGE = 'age'
     CAD_DUR = 'cad.dur'
+    CAD_DUR_GOOD = 'caddur'
     CHOLESTEROL = 'choleste'
     SIGDZ = 'sigdz'
     TVDLM = 'tvdlm'

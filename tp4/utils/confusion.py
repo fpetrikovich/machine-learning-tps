@@ -10,3 +10,4 @@ def build_confusion_matrix(predictions, test_labels, target_shape):
 def build_and_save_confusion_matrix(predictions, test_labels, target_shape, labels, output_filename):
     confusion = build_confusion_matrix(predictions, test_labels, target_shape)
     save_confusion_matrix(confusion, labels, output_filename)
+    return confusion

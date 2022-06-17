@@ -39,4 +39,8 @@ Ejemplos de los llamados:
 ```
 # Preprocessing del dataset
 python preprocessing.py -f input/acath.csv -o input/acath_good.csv -analyze
+# Running the B item
+python main.py -f input/acath_good.csv -p b
+# Running the CD item
+python main.py -f input/acath_good.csv -p cd
 ```
