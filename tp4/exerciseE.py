@@ -56,8 +56,8 @@ def run_hierarchy(file):
         for i in range(len(y_test)):
             expected.append(int(y_test[i][0]))
             confusion = build_confusion_matrix(np.asarray(predictions), np.asarray(expected), [2,2])
-        save_confusion_matrix(confusion, ["Healthy", "Ill"], "output/matrix-"+str(cluster_amount))
-        plot_save_hierarchy(classes, X_train, X_test, y_test, "output/plot-"+str(cluster_amount))
+        save_confusion_matrix(confusion, ["Healthy", "Ill"], "results/matrix-"+str(cluster_amount))
+        plot_save_hierarchy(classes, X_train, X_test, y_test, "results/plot-"+str(cluster_amount))
 
 def plot_2d_example():
     a = 4
