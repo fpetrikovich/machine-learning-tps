@@ -1,6 +1,6 @@
 import argparse
 from config.configurations import Configuration
-from exerciseE import run_KMeans, run_hierarchy
+from exerciseE import run_KMeans, run_hierarchy, run_kohonen
 from fileHandling import read_csv
 from logistic import run_logistic
 
@@ -52,6 +52,10 @@ def main():
         run_KMeans(file, group_k)
     elif item == 'f':
         run_hierarchy(file)
+    elif item == 'g':
+        k = 2
+        iterations = 5000
+        run_kohonen(file, k, iterations)
 
 
 if __name__ == '__main__':

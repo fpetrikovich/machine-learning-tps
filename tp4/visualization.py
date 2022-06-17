@@ -3,7 +3,7 @@ from numpy import arange, ndenumerate
 
 
 def plot_kohonen_colormap(data, k=10, colormap='Blues', filename=None, addLabels = True):
-    directory = 'graphs/'
+    directory = 'output/'
     fig, ax = subplots(figsize=(k, k))
     pcolormesh(data, cmap=colormap, edgecolors=None)
     colorbar()

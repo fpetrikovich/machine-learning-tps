@@ -20,7 +20,7 @@ def apply(config, inputs, inputNames):
         plot_kohonen_colormap(neuronCounterMatrix, k=config.k, filename='colormap-plot.png', addLabels=False)
         plot_kohonen_colormap(lastNeuronCounterMatrix, k=config.k, filename='last-iter-plot.png')
         plot_kohonen_colormap(eucDistMatrix, k=config.k, colormap='Greys', filename='u-matrix-plot.png')
-        
+
         # Print where each country landed on
         kohonen.printLastIterationData()
 
@@ -34,7 +34,6 @@ def apply(config, inputs, inputNames):
 
 class Kohonen:
     def __init__(self, config, inputs, inputNames):
-        
         self.inputs = inputs
         self.inputNames = inputNames
         self.k = config.k
@@ -45,16 +44,17 @@ class Kohonen:
         network = []
 
         for _ in range(0, self.k):
+            index = randint(0, self.inputs.shape[0]-1)
             network.append(
                 array(
-                    [KohonenNeuron(self.inputs[randint(0, self.inputs.shape[0]-1)], (self.k, self.k)) for _ in range(0, self.k)], 
+                    [KohonenNeuron(self.inputs[index], (self.k, self.k)) for _ in range(0, self.k)],
                     dtype = KohonenNeuron
                 )
             )
 
         return array(network, dtype = object)
 
-    def getWinningNeuron(self, inputData, country = ''): 
+    def getWinningNeuron(self, inputData, country = ''):
         minDist = 214748364
         row = 0
         col = 0
@@ -63,24 +63,24 @@ class Kohonen:
             neuron = self.network[i][j]
             # Euclidean distance between data and weight
             dist = norm(neuron.getWeights()-inputData)
-   
+
             # winning neuron is the one with minimum distance
             if dist <= minDist:
                 minDist = dist
                 row = i
-                col = j                
+                col = j
 
         # Add 1 to the amount of data that landed on the winning neuron
         self.network[row][col].newDataEntry()
         # If it is the last iteration, countries which passed through the winning neuron are stored
         if country != '':
             self.network[row][col].lastEpochEntry(country)
-        
+
         return row, col
 
     # Want the positions of the neurons that live within a certain radius
     # of the neuron I'm analyzing
-    def getNeuronNeighbours(self, row, col, radius): 
+    def getNeuronNeighbours(self, row, col, radius):
         neuronPos = array([row, col])
         neuron = self.network[row][col]
         currNeighbours = neuron.getNeighbours()
@@ -160,7 +160,7 @@ class Kohonen:
 
         return average
 
-    
+
     def learn(self):
         iteration = 0
         inputsCount = self.inputs.shape[0]
