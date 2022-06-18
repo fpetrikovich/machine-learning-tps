@@ -10,6 +10,8 @@ class Headers(Enum):
     TVDLM = 'tvdlm'
     EXTRA_ID_HEADER = 'original id'
 
+ALL_HEADERS = [Headers.SEX.value,Headers.AGE.value,Headers.CAD_DUR.value,Headers.CHOLESTEROL.value,Headers.SIGDZ.value,Headers.TVDLM.value]
+
 class Similarity_Methods(Enum):
     MAX = 'max'
     MIN = 'min'
