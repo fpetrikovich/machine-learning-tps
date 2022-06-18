@@ -27,7 +27,7 @@ def analyze_dataset(df):
     # Get DF with all NaN values
     nan_df = df[pd.isna(df[Headers.TVDLM.value])]
     print('---------------------------')
-    print(f"NaN cholesterol values are {nan_df.shape[0]} out of {df.shape[0]} ({100 * nan_df.shape[0]/df.shape[0]}%)")
+    print(f"NaN tvdlm values are {nan_df.shape[0]} out of {df.shape[0]} ({100 * nan_df.shape[0]/df.shape[0]}%)")
     print('---------------------------')
 
     # Max values
