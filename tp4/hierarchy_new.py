@@ -26,7 +26,7 @@ class Hierarchy:
 
     def run(self, cluster_limit):
         while len(np.unique(self.cluster_mapping)) > cluster_limit:
-            print("n =", len(np.unique(self.cluster_mapping)))
+            print("\tn =", len(np.unique(self.cluster_mapping)))
             clusters = np.unique(self.cluster_mapping)
             self.calculate_centroids(self.cluster_mapping)
             self.merge_closest_clusters()

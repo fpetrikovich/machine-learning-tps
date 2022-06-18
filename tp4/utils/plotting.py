@@ -1,5 +1,6 @@
 import seaborn as sn
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_confusion_matrix(matrix, headings):
@@ -41,3 +42,14 @@ def plot_save_hierarchy(classes, X_train, X_test, y_test, filename):
     plt.savefig(filename)
     plt.close('all')
     plt.close(fig)
+
+def plot_accuracy_evolution(results):
+    x = []
+    y = []
+    e = []
+    for key in results:
+        x.append(key)
+        y.append(np.average(results[key]))
+        e.append(np.std(results[key]))
+    plt.errorbar(x, y, yerr=e)
+    plt.show()
