@@ -10,6 +10,7 @@ def main():
 
     # Add arguments
     parser.add_argument('-f', dest='file', required=True)    # Path to dataset
+    parser.add_argument('-ftest', dest='file_test', required=False)    # Path to dataset
     parser.add_argument('-p', dest='point', required=True)  # Exercise to run
     parser.add_argument('-mode', dest='mode', required=False)   # Running mode
     parser.add_argument('-crossk', dest='cross_k',
@@ -32,21 +33,24 @@ def main():
 
     cross_k = None
     group_k = None
+    df_test = None
 
     file = args.file
     if args.cross_k != None:
         cross_k = int(args.cross_k)
     if args.group_k != None:
         group_k = int(args.group_k)
+    if args.file_test != None:
+        df_test = read_csv(args.file_test)
 
     # Processing file
     df = read_csv(args.file)
 
     print("[INFO] Running exercise", item, "...")
     if item == 'b':
-        run_logistic(df, cross_k=cross_k, account_male_female=False)
+        run_logistic(df, cross_k=cross_k, account_male_female=False, df_test = df_test)
     elif item == 'cd':
-        run_logistic(df, cross_k=cross_k, account_male_female=True)
+        run_logistic(df, cross_k=cross_k, account_male_female=True, df_test = df_test)
     elif item == 'e':
         if group_k is None: group_k = 2
         run_KMeans(file, group_k)

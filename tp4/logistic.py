@@ -107,9 +107,12 @@ def perform_train_test(train, test_data, test_labels, predictor_headers, result_
         print("\n\n")
     return precision, accuracy, clf
 
-def run_normal(df, predictor_headers, result_headers, account_male_female = False):
+def run_normal(df, df_test, predictor_headers, result_headers, account_male_female = False):
     # Split dataset
-    train, test = split_dataset(df, TRAIN_TEST)
+    if df_test is None:
+        train, test = split_dataset(df, TRAIN_TEST)
+    else:
+        train, test = df, df_test
 
     train, _, _, _, test_data, test_labels = dataset_train_test(train, test, predictor_headers, result_headers)
     
@@ -210,12 +213,16 @@ def use_model(clf, data):
     predictions = np.array(list(map(round, tmp_predictions)))
     return predictions
 
-def run_logistic(df, cross_k = None, account_male_female = False):
+def run_logistic(df, cross_k = None, account_male_female = False, df_test = None):
     # Create result directory if not exists
     create_results_if_not_exist()
 
-    # Shuffle dataset
-    df = shuffle_dataset(df)
+    # Shuffle dataset only if no test data is sent
+    if df_test is None:
+        df = shuffle_dataset(df)
+    else:
+        # Modify the headings so that they are properly named
+        df_test = modify_dataset(df_test)
     # Modify the headings so that they are properly named
     df = modify_dataset(df)
     # Get headers to use later
@@ -223,7 +230,7 @@ def run_logistic(df, cross_k = None, account_male_female = False):
 
     # Normal execution
     if cross_k == None:
-        run_normal(df, predictor_headers, result_headers, account_male_female=account_male_female)
+        run_normal(df, df_test, predictor_headers, result_headers, account_male_female=account_male_female)
     # Cross validation execution
     else:
         return run_cross_validation(df, cross_k, predictor_headers, result_headers)

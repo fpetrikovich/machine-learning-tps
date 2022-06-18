@@ -24,6 +24,13 @@ Para actualizar el `requirements.txt`:
 pip freeze > requirements.txt
 ```
 
+## Datasets
+
+Hay varios datasets in `/input`:
+- `acath_good.csv` tiene reemplazados con KNN los registros con malos datos
+- `acath_good--train.csv` y `acath_good--test.csv` son el mejor conjunto de train/test que se obtuvo para el ejercicio B.
+- `acath_good_sex--train.csv` y `acath_good_sex--test.csv` son el mejor conjunto de train/test que se obtuvo para el ejercicio CD.
+
 ## Ejecutar
 
 Para ejecutar se usa la siguiente llamada:
@@ -39,8 +46,12 @@ Ejemplos de los llamados:
 ```
 # Preprocessing del dataset
 python preprocessing.py -f input/acath.csv -o input/acath_good.csv -analyze
-# Running the B item
+# Corriendo el B
 python main.py -f input/acath_good.csv -p b
-# Running the CD item
+# Corriendo el B with train/test
+python main.py -f input/acath_good--train.csv -ftest input/acath_good--test.csv -p b
+# Corriendo el CD
 python main.py -f input/acath_good.csv -p cd
+# Corriendo el CD with train/test
+python main.py -f input/acath_good_sex--train.csv -ftest input/acath_good_sex--test.csv -p cd
 ```
