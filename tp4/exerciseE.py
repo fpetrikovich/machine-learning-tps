@@ -8,6 +8,8 @@ from config.constants import Headers, Similarity_Methods
 from utils.confusion import build_confusion_matrix
 from sklearn.model_selection import train_test_split
 
+def standard_to_normal(name, matrix, min, max):
+    return matrix * (max[name]-min[name]) + min[name]
 
 def run_KMeans(file, k):
     df = read_csv(file)
@@ -43,19 +45,14 @@ def run_KMeans(file, k):
 
 def run_kohonen(file, k, iterations):
     df = read_csv(file)
-    df = (df-df.min())/(df.max()-df.min())
-
+    dfmin, dfmax = df.min(), df.max()
+    df_standard = (df-dfmin)/(dfmax-dfmin)
     # Train-Test split
-    classifications = df[[Headers.SIGDZ.value]]
-    df = df[[Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value]]
-    X_train, X_test, y_train, y_test = train_test_split(df, classifications, test_size=0.25)
-    X_train = df_to_numpy(X_train)
-    X_test = df_to_numpy(X_test)
-    y_train = df_to_numpy(y_train)
-    y_test = df_to_numpy(y_test)
+    df_standard = df_standard[[Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value]]
+    df_standard = df_to_numpy(df_standard)
 
     config = Config(k, iterations)
-    kohonen.apply(config, X_train, y_train)
+    kohonen.apply(config, df_standard, [Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value], lambda name, matrix: standard_to_normal(name, matrix, dfmin, dfmax))
 
 def run_hierarchy(file):
     df = read_csv(file)

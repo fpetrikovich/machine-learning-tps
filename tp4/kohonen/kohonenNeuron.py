@@ -5,16 +5,14 @@ class KohonenNeuron:
     def __init__(self, initialWeight, shape):
         self.completeCounter = 0
         self.lastEpochCounter = 0
-        self.countries = []
         self.weights = initialWeight
         self.neighbours = [array([i, j]) for i, j in ndindex(shape)]
 
     def newDataEntry(self):
         self.completeCounter += 1
 
-    def lastEpochEntry(self, country):
+    def lastEpochEntry(self):
         self.lastEpochCounter += 1
-        self.countries.append(country)
 
     def getWeights(self):
         return self.weights
@@ -24,9 +22,6 @@ class KohonenNeuron:
 
     def getLastEpochCounter(self):
         return self.lastEpochCounter
-
-    def getCountries(self):
-        return self.countries
 
     def getNeighbours(self):
         return self.neighbours

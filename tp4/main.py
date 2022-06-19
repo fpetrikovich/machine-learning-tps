@@ -16,6 +16,8 @@ def main():
     parser.add_argument('-crossk', dest='cross_k',
                         required=False)  # Cross validation
     parser.add_argument('-k', dest='group_k', required=False)  # K from Kmeans
+    parser.add_argument('-n', dest='n_kohonen', required=False)  # N para tamano de red de kohonen
+    parser.add_argument('-it', dest='iterations', required=False)  # iteraciones de kohonen
 
     # The following are for Python 3.8 and under
     # Verbose, print or not
@@ -34,12 +36,17 @@ def main():
     cross_k = None
     group_k = None
     df_test = None
-
+    n_kohonen = None 
+    iterations = None 
     file = args.file
     if args.cross_k != None:
         cross_k = int(args.cross_k)
     if args.group_k != None:
         group_k = int(args.group_k)
+    if args.n_kohonen != None:
+        n_kohonen = int(args.n_kohonen)
+    if args.iterations != None:
+        iterations = int(args.iterations)
     if args.file_test != None:
         df_test = read_csv(args.file_test)
 
@@ -57,9 +64,7 @@ def main():
     elif item == 'f':
         run_hierarchy(file)
     elif item == 'g':
-        k = 2
-        iterations = 5000
-        run_kohonen(file, k, iterations)
+        run_kohonen(file, n_kohonen, iterations)
 
 
 if __name__ == '__main__':

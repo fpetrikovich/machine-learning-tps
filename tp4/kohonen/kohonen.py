@@ -3,12 +3,12 @@ from numpy import array, ndindex, zeros, exp
 from numpy.linalg import norm
 import math
 from random import randint
-from visualization import plot_kohonen_colormap
+from visualization import plot_kohonen_colormap, plot_kohonen_colormap_multiple
 from kohonen.kohonenNeuron import KohonenNeuron
 from fileHandling import write_matrix_to_file
 
 # VER SI HAY QUE CAMBIAR LOS PESOS DE LA NEURONA GANADORA
-def apply(config, inputs, inputNames):
+def apply(config, inputs, inputNames, unstandarizeFunction):
     try:
         kohonen = Kohonen(config, inputs, inputNames)
         kohonen.learn()
@@ -16,13 +16,14 @@ def apply(config, inputs, inputNames):
         lastNeuronCounterMatrix = kohonen.getNeuronCounterMatrix(False)
         eucDistMatrix = kohonen.calculateWeightDistanceMatrix()
 
+        # Hits per variable
+        variableHits = kohonen.calculateSeparateVariableMatrices(unstandarizeFunction)
+        plot_kohonen_colormap_multiple(lastNeuronCounterMatrix, variableHits)
+
         # Plotting matrices
         plot_kohonen_colormap(neuronCounterMatrix, k=config.k, filename='colormap-plot.png', addLabels=False)
         plot_kohonen_colormap(lastNeuronCounterMatrix, k=config.k, filename='last-iter-plot.png')
         plot_kohonen_colormap(eucDistMatrix, k=config.k, colormap='Greys', filename='u-matrix-plot.png')
-
-        # Print where each country landed on
-        kohonen.printLastIterationData()
 
         # Writing matrices to files
         write_matrix_to_file(('counterMatrix_%s.txt' % (config.k)), neuronCounterMatrix)
@@ -35,26 +36,26 @@ def apply(config, inputs, inputNames):
 class Kohonen:
     def __init__(self, config, inputs, inputNames):
         self.inputs = inputs
-        self.inputNames = inputNames
         self.k = config.k
         self.iterations = config.iterations
+        self.inputNames = inputNames
         self.network = self.createKohonenNetwork()
 
     def createKohonenNetwork(self):
         network = []
-
+        # Create a K x K network made out of Kohonen Neurons
         for _ in range(0, self.k):
-            index = randint(0, self.inputs.shape[0]-1)
+            indexes = [randint(0, self.inputs.shape[0]-1) for _ in range(0, self.k)]
             network.append(
                 array(
-                    [KohonenNeuron(self.inputs[index], (self.k, self.k)) for _ in range(0, self.k)],
+                    [KohonenNeuron(self.inputs[indexes[i]], (self.k, self.k)) for i in range(0, self.k)],
                     dtype = KohonenNeuron
                 )
             )
 
         return array(network, dtype = object)
 
-    def getWinningNeuron(self, inputData, country = ''):
+    def getWinningNeuron(self, inputData, lastIter = False):
         minDist = 214748364
         row = 0
         col = 0
@@ -73,8 +74,8 @@ class Kohonen:
         # Add 1 to the amount of data that landed on the winning neuron
         self.network[row][col].newDataEntry()
         # If it is the last iteration, countries which passed through the winning neuron are stored
-        if country != '':
-            self.network[row][col].lastEpochEntry(country)
+        if lastIter:
+            self.network[row][col].lastEpochEntry()
 
         return row, col
 
@@ -160,12 +161,13 @@ class Kohonen:
 
         return average
 
-
     def learn(self):
         iteration = 0
+        # How many inputs we have to work with
         inputsCount = self.inputs.shape[0]
 
         for iteration in range(0, self.iterations):
+            print(iteration)
             # Will determine what type of data should be stored
             lastIter = True if iteration == self.iterations-1 else False
             # Learning rate for the iteration
@@ -177,7 +179,7 @@ class Kohonen:
                 # Input data of the contry being analyzed
                 inputData = self.inputs[inputIdx]
                 # Row and column of the winning neuron
-                row, col = self.getWinningNeuron(inputData, self.inputNames[inputIdx] if lastIter else '')
+                row, col = self.getWinningNeuron(inputData, lastIter)
                 # Neighbours = neurons within a certain radius of the winning neuron
                 neighbours = self.getNeuronNeighbours(row, col, radius)
                 # Array of modified learning rates for the neighbours
@@ -185,7 +187,46 @@ class Kohonen:
                 # Updating the weights of the neighbour neurons
                 self.updateNeuronsWeights(neighbours, learningRates, inputData)
 
-    def printLastIterationData(self):
-        print("---------------------\nPos\tCountries")
-        for i, j in ndindex(self.network.shape):
-            print(('[%i, %i]\t%s' % (i, j, self.network[i][j].getCountries())))
+    # Methods to separate varibles into distinct plots
+    def getRawNetwork(self):
+        raw = zeros((self.k, self.k, len(self.inputs[0])) , dtype=float)
+        for i in range(0, self.k):
+            for j in range(0, self.k):
+                raw[i][j] = self.network[i][j].getWeights()
+        return raw
+
+    # def addToClosestValue(self, matrix, value):
+    #     minDist = 214748364
+    #     row = 0
+    #     col = 0
+
+    #     for i, j in ndindex(matrix.shape):
+    #         # Euclidean distance between data and weight
+    #         dist = abs(value - matrix[i][j])
+
+    #         # winning neuron is the one with minimum distance
+    #         if dist <= minDist:
+    #             minDist = dist
+    #             row = i
+    #             col = j
+
+    #     return row, col
+
+    def calculateSeparateVariableMatrices(self, unstandarizeFunction):
+        inputSize = len(self.inputs[0])
+        separatedVariables = zeros((inputSize, self.k, self.k) , dtype=float)
+        hits = zeros((inputSize, self.k, self.k) , dtype=int)
+        rawNetwork = self.getRawNetwork()
+
+        for i in range(0, inputSize):
+            separatedVariables[i] = unstandarizeFunction(self.inputNames[i], rawNetwork[:,:,i])
+
+        # for input in self.inputs:
+        #     for idx in range(0, inputSize):
+        #         i, j = self.addToClosestValue(separatedVariables[idx], input[idx])
+        #         hits[idx][i][j] += 1
+        # return hits
+
+        return separatedVariables
+
+
