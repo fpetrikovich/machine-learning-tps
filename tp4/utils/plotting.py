@@ -25,7 +25,11 @@ def plot_hierarchy(classes, X_train, X_test, y_test):
     fig = plt.figure(figsize = (16, 9))
     ax = plt.axes(projection ="3d")
     ax.grid(b = True, color ='grey', linestyle ='-.', linewidth = 0.3, alpha = 0.2)
-    ax.scatter3D(X_test[:,0], X_test[:,1], X_test[:,2], alpha=0.8, c=y_test[:,0], marker ='x')
+    ax.set_xlabel('Age', fontweight ='bold')
+    ax.set_ylabel('Duration', fontweight ='bold')
+    ax.set_zlabel('Cholesterol', fontweight ='bold')
+    if(len(X_test) > 0):
+        ax.scatter3D(X_test[:,0], X_test[:,1], X_test[:,2], alpha=0.8, c=y_test[:,0], marker ='x')
     for c in classes:
         points = X_train[c]
         ax.scatter3D(points[:,0], points[:,1], points[:,2], alpha=0.8)
@@ -35,7 +39,11 @@ def plot_save_hierarchy(classes, X_train, X_test, y_test, filename):
     fig = plt.figure(figsize = (16, 9))
     ax = plt.axes(projection ="3d")
     ax.grid(b = True, color ='grey', linestyle ='-.', linewidth = 0.3, alpha = 0.2)
-    ax.scatter3D(X_test[:,0], X_test[:,1], X_test[:,2], alpha=0.8, c=y_test[:,0], marker ='x')
+    ax.set_xlabel('Age', fontweight ='bold')
+    ax.set_ylabel('Duration', fontweight ='bold')
+    ax.set_zlabel('Cholesterol', fontweight ='bold')
+    if(len(X_test) > 0):
+        ax.scatter3D(X_test[:,0], X_test[:,1], X_test[:,2], alpha=0.8, c=y_test[:,0], marker ='x')
     for c in classes:
         points = X_train[c]
         ax.scatter3D(points[:,0], points[:,1], points[:,2], alpha=0.8)

@@ -25,6 +25,11 @@ def run_KMeans(file, k):
         y_train = df_to_numpy(y_train)
         y_test = df_to_numpy(y_test)
 
+        #X_train = np.concatenate([X_train, X_test])
+        #y_train = np.concatenate([y_train, y_test])
+        #X_test = []
+        #y_test = []
+
         for cluster_amount in [10, 5, 3, 2]:
             kmeans = KMeans(X_train, y_train, cluster_amount)
             classes = kmeans.apply()
@@ -36,13 +41,14 @@ def run_KMeans(file, k):
             predictions = kmeans.predict(X_test)
             for i in range(len(y_test)):
                 expected.append(int(y_test[i][0]))
-            confusion = build_confusion_matrix(np.asarray(predictions), np.asarray(expected), [2,2])
-            accuracy = (confusion[0][0]+confusion[1][1]) / np.sum(confusion)
-            if cluster_amount not in results:
-                results[cluster_amount] = [accuracy]
-            else:
-                results[cluster_amount].append(accuracy)
-            save_confusion_matrix(confusion, ["Healthy", "Ill"], "results/kmeans-matrix-"+str(cluster_amount))
+            if(len(X_test) > 0):
+                confusion = build_confusion_matrix(np.asarray(predictions), np.asarray(expected), [2,2])
+                accuracy = (confusion[0][0]+confusion[1][1]) / np.sum(confusion)
+                if cluster_amount not in results:
+                    results[cluster_amount] = [accuracy]
+                else:
+                    results[cluster_amount].append(accuracy)
+                save_confusion_matrix(confusion, ["Healthy", "Ill"], "results/kmeans-matrix-"+str(cluster_amount))
             plot_save_hierarchy(classes, X_train, X_test, y_test, "results/kmeans-plot-"+str(cluster_amount))
     plot_accuracy_evolution(results)
 
@@ -78,6 +84,11 @@ def run_hierarchy(file):
         y_train = df_to_numpy(y_train)
         y_test = df_to_numpy(y_test)
 
+        #X_train = np.concatenate([X_train, X_test])
+        #y_train = np.concatenate([y_train, y_test])
+        #X_test = []
+        #y_test = []
+
         hierarchy = Hierarchy(X_train, y_train, Similarity_Methods.CENTROID)
         for cluster_amount in [10, 5, 3, 2]:
             classes = hierarchy.run(cluster_amount)
@@ -89,13 +100,14 @@ def run_hierarchy(file):
             predictions = hierarchy.predict(X_test)
             for i in range(len(y_test)):
                 expected.append(int(y_test[i][0]))
-            confusion = build_confusion_matrix(np.asarray(predictions), np.asarray(expected), [2,2])
-            accuracy = (confusion[0][0]+confusion[1][1]) / np.sum(confusion)
-            if cluster_amount not in results:
-                results[cluster_amount] = [accuracy]
-            else:
-                results[cluster_amount].append(accuracy)
-            save_confusion_matrix(confusion, ["Healthy", "Ill"], "results/hierarchy-matrix-"+str(cluster_amount))
+            if(len(X_test) > 0):
+                confusion = build_confusion_matrix(np.asarray(predictions), np.asarray(expected), [2,2])
+                accuracy = (confusion[0][0]+confusion[1][1]) / np.sum(confusion)
+                if cluster_amount not in results:
+                    results[cluster_amount] = [accuracy]
+                else:
+                    results[cluster_amount].append(accuracy)
+                save_confusion_matrix(confusion, ["Healthy", "Ill"], "results/hierarchy-matrix-"+str(cluster_amount))
             plot_save_hierarchy(classes, X_train, X_test, y_test, "results/hierarchy-plot-"+str(cluster_amount))
     plot_accuracy_evolution(results)
 
