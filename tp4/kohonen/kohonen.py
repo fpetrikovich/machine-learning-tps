@@ -6,6 +6,7 @@ from random import randint
 from visualization import plot_kohonen_colormap, plot_kohonen_colormap_multiple
 from kohonen.kohonenNeuron import KohonenNeuron
 from fileHandling import write_matrix_to_file
+from datetime import datetime
 
 # VER SI HAY QUE CAMBIAR LOS PESOS DE LA NEURONA GANADORA
 def apply(config, inputs, inputNames, unstandarizeFunction):
@@ -21,14 +22,15 @@ def apply(config, inputs, inputNames, unstandarizeFunction):
         plot_kohonen_colormap_multiple(lastNeuronCounterMatrix, variableHits)
 
         # Plotting matrices
-        plot_kohonen_colormap(neuronCounterMatrix, k=config.k, filename='colormap-plot.png', addLabels=False)
-        plot_kohonen_colormap(lastNeuronCounterMatrix, k=config.k, filename='last-iter-plot.png')
-        plot_kohonen_colormap(eucDistMatrix, k=config.k, colormap='Greys', filename='u-matrix-plot.png')
+        ts = int(datetime.timestamp(datetime.now()))
+        plot_kohonen_colormap(neuronCounterMatrix, k=config.k, filename=f'colormap-plot_{ts}.png', addLabels=False)
+        plot_kohonen_colormap(lastNeuronCounterMatrix, k=config.k, filename=f'last-iter-plot_{ts}.png')
+        plot_kohonen_colormap(eucDistMatrix, k=config.k, colormap='Greys', filename=f'u-matrix-plot_{ts}.png')
 
         # Writing matrices to files
-        write_matrix_to_file(('counterMatrix_%s.txt' % (config.k)), neuronCounterMatrix)
-        write_matrix_to_file(('lastCounterMatrix_%s.txt' % (config.k)), lastNeuronCounterMatrix)
-        write_matrix_to_file(('eucDistMatrix_%s.txt' % (config.k)), eucDistMatrix)
+        write_matrix_to_file((f'counterMatrix_{config.k}_{ts}.txt'), neuronCounterMatrix)
+        write_matrix_to_file((f'lastCounterMatrix_{config.k}_{ts}.txt'), lastNeuronCounterMatrix)
+        write_matrix_to_file((f'eucDistMatrix_{config.k}_{ts}.txt'), eucDistMatrix)
 
     except KeyboardInterrupt:
         print("Finishing up...")
