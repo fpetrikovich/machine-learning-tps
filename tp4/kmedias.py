@@ -45,6 +45,15 @@ class KMeans:
                     self.classes[-1].append(i)
         return self.classes
 
+    def get_stereotypes(self, attributes_range):
+        stereotypes = []
+        min = attributes_range[0]
+        max = attributes_range[1]
+        for cluster in self.classes:
+            data = self.points[cluster] * (max-min) + min
+            stereotypes.append(np.average(data, axis=0).tolist())
+        return stereotypes
+
     def reassign_groups(self, groups, centroides):
         # Create a new assignment array where the new group ids will be stored
         new_assigments = np.copy(self.assignments)

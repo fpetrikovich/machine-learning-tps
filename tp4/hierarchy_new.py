@@ -31,11 +31,11 @@ class Hierarchy:
             self.calculate_centroids(self.cluster_mapping)
             self.merge_closest_clusters()
         self.calculate_cluster_classification()
-        classes = []
+        self.classes = []
         for cluster in self.clusters:
             points = np.where(self.cluster_mapping == self.cluster_mapping[cluster])[0]
-            classes.append(points.tolist())
-        return classes
+            self.classes.append(points.tolist())
+        return self.classes
 
     def merge_closest_clusters(self):
         index = np.argmin(self.distances)
@@ -136,3 +136,12 @@ class Hierarchy:
                 min_distance = d
                 closest_cluster = cluster
         return closest_cluster
+
+    def get_stereotypes(self, attributes_range):
+        stereotypes = []
+        min = attributes_range[0]
+        max = attributes_range[1]
+        for cluster in self.classes:
+            data = self.points[cluster] * (max-min) + min
+            stereotypes.append(np.average(data, axis=0).tolist())
+        return stereotypes

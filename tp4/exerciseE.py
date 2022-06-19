@@ -11,21 +11,26 @@ from sklearn.model_selection import train_test_split
 
 def run_KMeans(file, k):
     df = read_csv(file)
-    df = (df-df.min())/(df.max()-df.min())
     classifications = df[[Headers.SIGDZ.value]]
     df = df[[Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value]]
+    extremes = [df_to_numpy(df.min()), df_to_numpy(df.max())]
+    df = (df-df.min())/(df.max()-df.min())
+
     results = {}
     for attempt in range(5):
         print("Attempt #", attempt)
-        X_train, X_test, y_train, y_test = train_test_split(df, classifications, test_size=0.25)
+        X_train, X_test, y_train, y_test = train_test_split(df, classifications, test_size=0.1)
         X_train = df_to_numpy(X_train)
         X_test = df_to_numpy(X_test)
         y_train = df_to_numpy(y_train)
         y_test = df_to_numpy(y_test)
 
-        for cluster_amount in [100, 50, 25, 20, 15, 10, 5, 3, 2]:
+        for cluster_amount in [10, 5, 3, 2]:
             kmeans = KMeans(X_train, y_train, cluster_amount)
             classes = kmeans.apply()
+            stereotypes = kmeans.get_stereotypes(extremes)
+            for i in range(len(stereotypes)):
+                print("Stereotype for cluster #", i, ":", stereotypes[i])
 
             expected = []
             predictions = kmeans.predict(X_test)
@@ -59,12 +64,13 @@ def run_kohonen(file, k, iterations):
 
 def run_hierarchy(file):
     df = read_csv(file)
-    df = (df-df.min())/(df.max()-df.min())
     classifications = df[[Headers.SIGDZ.value]]
     df = df[[Headers.AGE.value, Headers.CAD_DUR.value, Headers.CHOLESTEROL.value]]
+    extremes = [df_to_numpy(df.min()), df_to_numpy(df.max())]
+    df = (df-df.min())/(df.max()-df.min())
 
     results = {}
-    for attempt in range(5):
+    for attempt in range(3):
         print("Attempt #", attempt)
         X_train, X_test, y_train, y_test = train_test_split(df, classifications, test_size=0.1)
         X_train = df_to_numpy(X_train)
@@ -73,8 +79,12 @@ def run_hierarchy(file):
         y_test = df_to_numpy(y_test)
 
         hierarchy = Hierarchy(X_train, y_train, Similarity_Methods.CENTROID)
-        for cluster_amount in [100, 50, 25, 20, 15, 10, 5, 3, 2]:
+        for cluster_amount in [10, 5, 3, 2]:
             classes = hierarchy.run(cluster_amount)
+            stereotypes = hierarchy.get_stereotypes(extremes)
+            for i in range(len(stereotypes)):
+                print("Stereotype for cluster #", i, ":", stereotypes[i])
+
             expected = []
             predictions = hierarchy.predict(X_test)
             for i in range(len(y_test)):
