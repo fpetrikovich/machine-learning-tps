@@ -1,0 +1,33 @@
+from enum import Enum
+
+class Headers(Enum):
+    ADULT = 'adult'
+    COLLECTION = 'belongs_to_collection'
+    BUDGET = 'budget'
+    GENRES = 'genres'
+    HOMEPAGE = 'homepage'
+    ID = 'id'
+    IMDB = 'imdb_id'
+    LANGUAGE = 'original_language'
+    TITLE_OG = 'original_title'
+    OVERVIEW = 'overview'
+    POPULARITY = 'popularity'
+    POSTER = 'poster_path'
+    PRODUCTION = 'production_companies'
+    PRODUCTION_COUNTRY = 'production_countries'
+    RELEASE = 'release_date'
+    REVENUE = 'revenue'
+    RUNTIME = 'runtime'
+    LANGUAGE_SPOKEN = 'spoken_languages'
+    STATUS = 'status'
+    TAGLINE = 'tagline'
+    TITLE = 'title'
+    VIDEO = 'video'
+    VOTE_AVG = 'vote_average'
+    VOTE_COUNT = 'vote_count'
+
+class Similarity_Methods(Enum):
+    MAX = 'max'
+    MIN = 'min'
+    AVG = 'avg'
+    CENTROID = 'centroid'
